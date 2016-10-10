@@ -19,6 +19,11 @@
             - "pManagementDMZSubnetACIDR"
             - "pManagementDMZSubnetBCIDR"
             - "pVPCTenancy"
+        - Label:
+            default: "AWS Quick Start Configuration"
+          Parameters:
+          - "QSS3BucketName"
+          - "QSS3KeyPrefix"
       ParameterLabels: 
         pManagementVPCName: 
           default: "Name of Management VPC to create"
@@ -30,6 +35,10 @@
           default: "CIDR block of Management DMZ SubnetB"
         pVPCTenancy: 
           default: "Instance tenancy"
+        QSS3BucketName:
+          default: "Quick Start S3 Bucket Name"
+        QSS3KeyPrefix:
+          default: "Quick Start S3 Key Prefix"
     Stack: 
       Value: "2"
     VersionDate: 
@@ -40,6 +49,7 @@
       Description: "CIDR blocks, VPC names, KeyName, EC2 instance size"
     Output: 
       Description: "Outputs ID of all deployed resources"
+
   Parameters: 
     pProductionVPC: 
       Description: "Production VPC to peer with (optional)"
@@ -123,10 +133,6 @@
       Description: "Specifies whether this region supports NAT Gateway (this value is determined by the main stack if it is invoked from there)"
       Type: "String"
       Default: "true"
-    pTemplateUrlPrefix: 
-      Description: "URL prefix used to call the NAT instance template (this value is determined by the main stack if it is invoked from there)"
-      Type: "String"
-      Default: ""
     pNatInstanceType: 
       Description: "Instance type to use for the NAT intstance if the region does not support NAT Gateway (this value is determined by the main stack if it is invoked from there)"
       Type: "String"
@@ -135,6 +141,28 @@
       Description: "AMI to use for the NAT intstance if the region does not support NAT Gateway (this value is determined by the main stack if it is invoked from there)"
       Type: "String"
       Default: ""
+    QSS3BucketName:
+      AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+      ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+        letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+        (-).
+      Default: quickstart-reference
+      Description: S3 bucket name for the Quick Start assets. Quick Start bucket name
+        can include numbers, lowercase letters, uppercase letters, and hyphens (-).
+        It cannot start or end with a hyphen (-).
+      Type: String
+    QSS3KeyPrefix:
+      AllowedPattern: "^[0-9a-zA-Z-]+(/[0-9a-zA-Z-]+)*$"
+      ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+        uppercase letters, hyphens (-), and forward slash (/). It cannot start or end
+        with forward slash (/) because they are automatically appended.
+      Default: quickstart-enterprise-accelerator-nist
+      Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+        can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+        forward slash (/). It cannot start or end with forward slash (/) because they
+        are automatically appended.
+      Type: String
+
   Conditions: 
     cCreatePeeringProduction: 
       Fn::Not: 
@@ -172,13 +200,17 @@
       Type: "AWS::CloudFormation::Stack"
       Condition: "cNeedNatInstance"
       Properties: 
-        TemplateURL: 
-          Fn::Join: 
-            - ""
-            - 
-              - 
-                Ref: "pTemplateUrlPrefix"
-              - "templates/template-nat-instance.json"
+        TemplateURL:
+          Fn::Join:
+          - "/"
+          - - Fn::FindInMap:
+              - AWSInfoRegionMap
+              - Ref: AWS::Region
+              - QuickStartS3URL
+            - Ref: QSS3BucketName
+            - Ref: QSS3KeyPrefix
+            - quickstart-compliance-common
+            - templates/nat-instance.template
         TimeoutInMinutes: "20"
         Parameters: 
           pDMZSubnetA: 
@@ -572,6 +604,7 @@
           Ref: "rPeeringConnectionProduction"
         DestinationCidrBlock: 
           Ref: "pProductionCIDR"
+
   Outputs: 
     rVPCManagement: 
       Value: 
