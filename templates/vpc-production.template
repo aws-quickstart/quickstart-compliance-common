@@ -374,26 +374,6 @@
             Key: "Environment"
             Value: 
               Ref: "pEnvironment"
-    rDHCPoptions: 
-      Type: "AWS::EC2::DHCPOptions"
-      Properties: 
-        DomainName: 
-          Fn::Join: 
-            - ""
-            - 
-              - 
-                Ref: "AWS::Region"
-              - ".compute.internal"
-        DomainNameServers: 
-          - "AmazonProvidedDNS"
-        Tags: 
-          - 
-            Key: "Name"
-            Value: "dhcp-internal-dns"
-          - 
-            Key: "Environment"
-            Value: 
-              Ref: "pEnvironment"
     rNACLPublic: 
       Type: "AWS::EC2::NetworkAcl"
       Properties: 
@@ -734,13 +714,6 @@
           Ref: "rVPCProduction"
         InternetGatewayId: 
           Ref: "rIGWProd"
-    rDHCPOptionsAssocProd: 
-      Type: "AWS::EC2::VPCDHCPOptionsAssociation"
-      Properties: 
-        VpcId: 
-          Ref: "rVPCProduction"
-        DhcpOptionsId: 
-          Ref: "rDHCPoptions"
 
   Outputs: 
     rVPCProduction: 

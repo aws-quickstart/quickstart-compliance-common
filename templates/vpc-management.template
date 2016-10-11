@@ -317,26 +317,6 @@
           - 
             Key: "Name"
             Value: "igw-management"
-    rDHCPoptions: 
-      Type: "AWS::EC2::DHCPOptions"
-      Properties: 
-        DomainName: 
-          Fn::Join: 
-            - ""
-            - 
-              - 
-                Ref: "AWS::Region"
-              - ".compute.internal"
-        DomainNameServers: 
-          - "AmazonProvidedDNS"
-        Tags: 
-          - 
-            Key: "Name"
-            Value: "dhcp-internal-dns"
-          - 
-            Key: "Environment"
-            Value: 
-              Ref: "pEnvironment"
     rRouteTableMgmtPrivate: 
       Type: "AWS::EC2::RouteTable"
       Properties: 
@@ -541,13 +521,6 @@
             Key: "Environment"
             Value: 
               Ref: "pEnvironment"
-    rDHCPOptionsAssocMgmt: 
-      Type: "AWS::EC2::VPCDHCPOptionsAssociation"
-      Properties: 
-        VpcId: 
-          Ref: "rVPCManagement"
-        DhcpOptionsId: 
-          Ref: "rDHCPoptions"
     rPeeringConnectionProduction: 
       Type: "AWS::EC2::VPCPeeringConnection"
       Condition: "cCreatePeeringProduction"
