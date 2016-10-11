@@ -8,7 +8,6 @@
           Label: 
             default: "Region Config"
           Parameters: 
-            - "pRegionDomain"
             - "pRegionAZ1Name"
             - "pRegionAZ2Name"
         - 
@@ -84,10 +83,6 @@
       Description: "CIDR block to allow access to bastion SSH"
       Type: "String"
       Default: "0.0.0.0/0"
-    pRegionDomain: 
-      Description: "Region name where resources will deploy"
-      Type: "String"
-      Default: "us-east-1.compute.internal"
     pRegionAZ1Name: 
       Description: "Availability Zone 1 Name in Region"
       Type: "AWS::EC2::AvailabilityZone::Name"
@@ -383,13 +378,18 @@
       Type: "AWS::EC2::DHCPOptions"
       Properties: 
         DomainName: 
-          Ref: "pRegionDomain"
+          Fn::Join: 
+            - ""
+            - 
+              - 
+                Ref: "AWS::Region"
+              - ".compute.internal"
         DomainNameServers: 
           - "AmazonProvidedDNS"
         Tags: 
           - 
             Key: "Name"
-            Value: "dhcp-amazon-dns"
+            Value: "dhcp-internal-dns"
           - 
             Key: "Environment"
             Value: 
