@@ -22,6 +22,7 @@
         - Label:
             default: "AWS Quick Start Configuration"
           Parameters:
+          - "QuickStartS3URL"
           - "QSS3BucketName"
           - "QSS3KeyPrefix"
       ParameterLabels: 
@@ -35,6 +36,8 @@
           default: "CIDR block of Management DMZ SubnetB"
         pVPCTenancy: 
           default: "Instance tenancy"
+        QuickStartS3URL:
+          default: "Quick Start URL"
         QSS3BucketName:
           default: "Quick Start S3 Bucket Name"
         QSS3KeyPrefix:
@@ -141,6 +144,10 @@
       Description: "AMI to use for the NAT intstance if the region does not support NAT Gateway (this value is determined by the main stack if it is invoked from there)"
       Type: "String"
       Default: ""
+    QuickStartS3URL:
+      Description: Quick Start S3 URL prefix.
+      Default: "https://s3.amazonaws.com"
+      Type: String
     QSS3BucketName:
       AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
       ConstraintDescription: Quick Start bucket name can include numbers, lowercase
@@ -203,13 +210,11 @@
         TemplateURL:
           Fn::Join:
           - "/"
-          - - Fn::FindInMap:
-              - AWSInfoRegionMap
-              - Ref: AWS::Region
-              - QuickStartS3URL
+          -
+            - Ref: QuickStartS3URL
             - Ref: QSS3BucketName
             - Ref: QSS3KeyPrefix
-            - quickstart-compliance-common
+            - submodules/quickstart-compliance-common
             - templates/nat-instance.template
         TimeoutInMinutes: "20"
         Parameters: 
