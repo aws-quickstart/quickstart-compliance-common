@@ -607,9 +607,9 @@
     rRouteTableMgmtPrivate:
       Value:
         Ref: "rRouteTableMgmtPrivate"
-    pRouteTableProdPublic:
+    rRouteTableMgmtDMZ:
       Value:
-        Ref: "pRouteTableProdPublic"
+        Ref: "rRouteTableMgmtDMZ"
     rSecurityGroupVpcNat:
       Value:
         Ref: "rSecurityGroupVpcNat"
