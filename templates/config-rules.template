@@ -163,7 +163,7 @@
                 - "};"
                 - ""
         Handler: "index.handler"
-        Runtime: "nodejs"
+        Runtime: "nodejs4.3"
         Timeout: "30"
         Role: 
           Fn::GetAtt: 
@@ -254,7 +254,7 @@
                 - "};"
                 - ""
         Handler: "index.handler"
-        Runtime: "nodejs"
+        Runtime: "nodejs4.3"
         Timeout: "30"
         Role: 
           Fn::GetAtt: 
