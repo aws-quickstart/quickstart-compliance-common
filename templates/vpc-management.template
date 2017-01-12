@@ -452,6 +452,27 @@
             Key: "Environment"
             Value:
               Ref: "pEnvironment"
+    rSecurityGroupMgmtBastion: 
+      Type: "AWS::EC2::SecurityGroup"
+      Properties: 
+        GroupDescription: "Allow Bastion from Management Network"
+        VpcId: 
+          Ref: "pProductionVPC"
+        SecurityGroupIngress: 
+          - 
+            IpProtocol: "tcp"
+            FromPort: "22"
+            ToPort: "22"
+            SourceSecurityGroupId:
+              Ref: "rSecurityGroupBastion"
+        Tags: 
+          - 
+            Key: "Name"
+            Value: "sg-ssh-access-from-management-vpc"
+          - 
+            Key: "Environment"
+            Value: 
+              Ref: "pEnvironment"
     rManagementNATInstanceInterface:
       Type: "AWS::EC2::NetworkInterface"
       Properties:
