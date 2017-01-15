@@ -25,6 +25,14 @@
           - "QuickStartS3URL"
           - "QSS3BucketName"
           - "QSS3KeyPrefix"
+        - Label:
+            default: "Optional Components - Bastion"
+          Parameters:
+            - "pCreateBastionHost"
+            - "pEC2KeyPairBastion"
+            - "pBastionInstanceType"
+            - "pBastionAmi"
+            - "pBastionSSHCIDR"
       ParameterLabels:
         pManagementVPCName:
           default: "Name of Management VPC to create"
@@ -42,6 +50,16 @@
           default: "Quick Start S3 Bucket Name"
         QSS3KeyPrefix:
           default: "Quick Start S3 Key Prefix"
+        pCreateBastionHost:
+          default: "Create Bastion Host"
+        pEC2KeyPairBastion:
+          default: "Bastion KeyPair"
+        pBastionInstanceType:
+          default: "Bastion Instance Type"
+        pBastionAmi:
+          default: "Bastion AMI"
+        pBastionSSHCIDR:
+          default: "Bastion SSH CIDR"
     Stack:
       Value: "2"
     VersionDate:
@@ -54,6 +72,13 @@
       Description: "Outputs ID of all deployed resources"
 
   Parameters:
+    pCreateBastionHost:
+      Description: "Should a Bastion host be created inside the DMZ Subnet(s)?"
+      Type: "String"
+      Default: "True"
+      AllowedValues:
+        - "True"
+        - "False"
     pProductionVPC:
       Description: "Production VPC to peer with (optional)"
       Type: "String"
@@ -120,6 +145,7 @@
     pBastionSSHCIDR:
       Type: "String"
       Default: "0.0.0.0/0"
+      Description: "The CIDR Allowed SSH access to the bastion host"
     pBastionAmi:
       Description: "AMI to use for bastion host"
       Type: "String"
@@ -171,6 +197,11 @@
       Type: String
 
   Conditions:
+    cCreateBationHost:
+      Fn::Equals:
+        -
+          Ref: "pCreateBastionHost"
+        - "True"
     cCreatePeeringProduction:
       Fn::Not:
         -
@@ -391,6 +422,7 @@
             Value: "MgmtBastionDevice"
     rMgmtBastionInstance:
       Type: "AWS::EC2::Instance"
+      Condition: cCreateBationHost
       Properties:
         InstanceType:
           Ref: "pBastionInstanceType"
@@ -416,10 +448,12 @@
                 - "yum update -y\n"
     rEIPProdBastion:
       Type: "AWS::EC2::EIP"
+      Condition: cCreateBationHost
       Properties:
         Domain: "vpc"
     AssociaterEIPProdBastion:
       Type: "AWS::EC2::EIPAssociation"
+      Condition: cCreateBationHost
       Properties:
         AllocationId:
           Fn::GetAtt:
@@ -522,6 +556,7 @@
           Ref: "rIGWManagement"
     rSecurityGroupBastion:
       Type: "AWS::EC2::SecurityGroup"
+      Condition: cCreateBationHost
       Properties:
         GroupDescription: "SG for Bastion Instances"
         VpcId:
