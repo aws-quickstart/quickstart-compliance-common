@@ -372,6 +372,8 @@
             Key: "Name"
             Value: "rt-management-vpc-dmz"
     rRouteMgmtIGW:
+      DependsOn:
+       - rGWAttachmentMgmtIGW
       Type: "AWS::EC2::Route"
       Properties:
         RouteTableId:
