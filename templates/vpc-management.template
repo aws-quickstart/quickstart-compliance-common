@@ -49,7 +49,6 @@ Metadata:
         Description: CIDR blocks, VPC names, KeyName, EC2 instance size
     Output:
         Description: Outputs ID of all deployed resources
-
 Parameters:
     pProductionVPC:
         Description: Production VPC to peer with (optional)
@@ -165,7 +164,6 @@ Parameters:
             forward slash (/). It cannot start or end with forward slash (/) because they
             are automatically appended.
         Type: String
-
 Conditions:
     cCreatePeeringProduction: !Not [ !Equals [ '', !Ref pProductionVPC] ]
     cNeedNatInstance: !Equals [ false, !Ref pSupportsNatGateway ]
@@ -456,7 +454,6 @@ Resources:
             RouteTableId: !Ref rRouteTableMgmtDMZ
             VpcPeeringConnectionId: !Ref rPeeringConnectionProduction
             DestinationCidrBlock: !Ref pProductionCIDR
-
 Outputs:
     rVPCManagement:
         Value: !Ref rVPCManagement
