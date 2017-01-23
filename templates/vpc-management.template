@@ -183,9 +183,7 @@ Resources:
         Type: AWS::CloudFormation::Stack
         Condition: cNeedNatInstance
         Properties:
-            TemplateURL: !Sub
-              - ${QuickStartS3URL}/${QSS3BucketName}/${QSS3KeyPrefix}/submodules/quickstart-compliance-common/templates/nat-instance.template
-              - { QuickStartS3URL: !FindInMap [ AWSInfoRegionMap, !Ref 'AWS::Region', QuickStartS3URL ] }
+            TemplateURL: !Sub ${QuickStartS3URL}/${QSS3BucketName}/${QSS3KeyPrefix}/submodules/quickstart-compliance-common/templates/nat-instance.template
             TimeoutInMinutes: 20
             Parameters:
                 pDMZSubnetA: !Ref rManagementDMZSubnetA
@@ -197,6 +195,7 @@ Resources:
                 pVpcId: !Ref rVPCManagement
                 pVpcName: !Ref pManagementVPCName
                 pRouteTablePrivate: !Ref rRouteTableMgmtPrivate
+                pEipNatAllocationId: !GetAtt [ rEIPProdNAT, AllocationId ]
     rSecurityGroupVpcNat:
         Type: AWS::EC2::SecurityGroup
         Properties:
@@ -373,7 +372,6 @@ Resources:
             NetworkInterfaceId: !Ref rManagementNATInstanceInterface
     rEIPProdNAT:
         Type: AWS::EC2::EIP
-        Condition: cSupportsNatGateway
         Properties:
             Domain: vpc
     rNATGateway:
@@ -471,3 +469,5 @@ Outputs:
         Value: !Ref rRouteTableMgmtPrivate
     rSecurityGroupVpcNat:
         Value: !Ref rSecurityGroupVpcNat
+    rEIPManagementNAT:
+        Value: !Ref rEIPProdNAT

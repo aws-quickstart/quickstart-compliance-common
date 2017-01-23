@@ -48,11 +48,10 @@ Parameters:
         Description: Routing table used for the NAT instance
         Type: String
         Default: ''
+    pEipNatAllocationId:
+        Description: Allocation ID for NAT EIP
+        Type: String
 Resources:
-    rEipNat:
-        Type: AWS::EC2::EIP
-        Properties:
-            Domain: vpc
     rNatInstanceEni:
         Type: AWS::EC2::NetworkInterface
         Properties:
@@ -92,7 +91,7 @@ Resources:
     AssociateEipNat:
         Type: AWS::EC2::EIPAssociation
         Properties:
-            AllocationId: !GetAtt [ rEipNat, AllocationId ]
+            AllocationId: !GetAtt [ pEipNatAllocationId, AllocationId ]
             NetworkInterfaceId: !Ref rNatInstanceEni
     rRouteProdPrivateNatInstance:
         Type: AWS::EC2::Route
