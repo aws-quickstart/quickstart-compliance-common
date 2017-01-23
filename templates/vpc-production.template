@@ -65,11 +65,9 @@ Metadata:
         Description: CIDR blocks, VPC names, KeyName, EC2 instance size
     Output:
         Description: Outputs ID of all deployed resources
-
 Conditions:
     cNeedNatInstance: !Equals [ false, !Ref pSupportsNatGateway ]
     cSupportsNatGateway: !Equals [ true, !Ref pSupportsNatGateway ]
-
 Parameters:
     pBastionSSHCIDR:
         Description: CIDR block to allow access to bastion SSH
@@ -168,7 +166,6 @@ Parameters:
             forward slash (/). It cannot start or end with forward slash (/) because they
             are automatically appended.
         Type: String
-
 Resources:
     rVPCProduction:
         Type: AWS::EC2::VPC
@@ -571,7 +568,6 @@ Resources:
         Properties:
             VpcId: !Ref rVPCProduction
             InternetGatewayId: !Ref rIGWProd
-
 Outputs:
     rVPCProduction:
         Value: !Ref rVPCProduction

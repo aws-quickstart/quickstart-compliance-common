@@ -19,7 +19,7 @@ Parameters:
     pSupportsGlacier:
         Description: Determines hether this region supports Glacier (passed in from Main template)
         Type: String
-        Default: Yes
+        Default: true
 Conditions:
     IsGovCloud: !Equals [ us-gov-west-1, !Ref 'AWS::Region' ]
     SupportsGlacier: !Equals [ true, !Ref pSupportsGlacier ]
@@ -245,7 +245,6 @@ Resources:
     rNetworkAclChangesAlarm:
         Type: AWS::CloudWatch::Alarm
         Properties:
-            AlarmName: CloudTrailNetworkAclChanges
             AlarmDescription: Alarms when an API call is made to create, update or delete a Network ACL.
             AlarmActions:
               - !Ref rSecurityAlarmTopic
@@ -269,7 +268,6 @@ Resources:
         Type: AWS::CloudWatch::Alarm
         DependsOn: rNetworkAclChangesAlarm
         Properties:
-            AlarmName: CloudTrailSecurityGroupChanges
             AlarmDescription: Alarms when an API call is made to create, update or delete a Security Group.
             AlarmActions:
               - !Ref rSecurityAlarmTopic
@@ -293,7 +291,6 @@ Resources:
         Type: AWS::CloudWatch::Alarm
         DependsOn: rSecurityGroupChangesAlarm
         Properties:
-            AlarmName: CloudTrailIAMRootActivity
             AlarmDescription: Root user activity detected!
             AlarmActions:
               - !Ref rSecurityAlarmTopic
@@ -317,7 +314,6 @@ Resources:
         Type: AWS::CloudWatch::Alarm
         DependsOn: rRootActivityAlarm
         Properties:
-            AlarmName: IAMUnauthorizedActionsAttempted
             AlarmDescription: Multiple unauthorized actions or logins attempted!
             AlarmActions:
               - !Ref rSecurityAlarmTopic
@@ -332,7 +328,6 @@ Resources:
         Type: AWS::CloudWatch::Alarm
         DependsOn: rUnauthorizedAttemptAlarm
         Properties:
-            AlarmName: DetectIAMPolicyChanges
             AlarmDescription: IAM Configuration changes detected!
             AlarmActions:
               - !Ref rSecurityAlarmTopic
@@ -347,7 +342,6 @@ Resources:
         Type: AWS::CloudWatch::Alarm
         DependsOn: rIAMPolicyChangesAlarm
         Properties:
-            AlarmName: DetectAccessKeyCreation
             AlarmDescription: 'Warning: New IAM access key was created. Please be sure this action was neccessary.'
             AlarmActions:
               - !Ref rSecurityAlarmTopic
@@ -372,7 +366,6 @@ Resources:
         Type: AWS::CloudWatch::Alarm
         DependsOn: rIAMCreateAccessKeyAlarm
         Properties:
-            AlarmName: DetectCloudTrailChanges
             AlarmDescription: 'Warning: Changes to CloudTrail log configuration detected in this account'
             AlarmActions:
               - !Ref rSecurityAlarmTopic

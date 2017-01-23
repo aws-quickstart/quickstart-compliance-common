@@ -22,6 +22,14 @@ Metadata:
               - QuickStartS3URL
               - QSS3BucketName
               - QSS3KeyPrefix
+          - Label:
+                default: Optional Components - Bastion
+            Parameters:
+              - pCreateBastionHost
+              - pEC2KeyPairBastion
+              - pBastionInstanceType
+              - pBastionAmi
+              - pBastionSSHCIDR
         ParameterLabels:
             pManagementVPCName:
                 default: Name of Management VPC to create
@@ -39,6 +47,16 @@ Metadata:
                 default: Quick Start S3 Bucket Name
             QSS3KeyPrefix:
                 default: Quick Start S3 Key Prefix
+            pCreateBastionHost:
+                default: Create Bastion Host
+            pEC2KeyPairBastion:
+                default: Bastion KeyPair
+            pBastionInstanceType:
+                default: Bastion Instance Type
+            pBastionAmi:
+                default: Bastion AMI
+            pBastionSSHCIDR:
+                default: Bastion SSH CIDR
     Stack:
         Value: 2
     VersionDate:
@@ -50,6 +68,13 @@ Metadata:
     Output:
         Description: Outputs ID of all deployed resources
 Parameters:
+    pCreateBastionHost:
+        Description: Should a Bastion host be created inside the DMZ Subnet(s)?
+        Type: String
+        Default: True
+        AllowedValues:
+          - true
+          - false
     pProductionVPC:
         Description: Production VPC to peer with (optional)
         Type: String
@@ -116,6 +141,7 @@ Parameters:
     pBastionSSHCIDR:
         Type: String
         Default: 0.0.0.0/0
+        Description: The CIDR Allowed SSH access to the bastion host
     pBastionAmi:
         Description: AMI to use for bastion host
         Type: String
@@ -131,6 +157,7 @@ Parameters:
     pSupportsNatGateway:
         Description: Specifies whether this region supports NAT Gateway (this value is determined by the main stack if it is invoked from there)
         Type: String
+        Default: true
     pNatInstanceType:
         Description: Instance type to use for the NAT intstance if the region does not support NAT Gateway (this value is determined by the main stack if it is invoked from there)
         Type: String
@@ -165,6 +192,7 @@ Parameters:
             are automatically appended.
         Type: String
 Conditions:
+    cCreateBastionHost: !Equals [ false, !Ref pCreateBastionHost ]
     cCreatePeeringProduction: !Not [ !Equals [ '', !Ref pProductionVPC] ]
     cNeedNatInstance: !Equals [ false, !Ref pSupportsNatGateway ]
     cSupportsNatGateway: !Equals [ true, !Ref pSupportsNatGateway ]
@@ -272,6 +300,8 @@ Resources:
               - Key: Name
                 Value: rt-management-vpc-dmz
     rRouteMgmtIGW:
+        DependsOn:
+          - rGWAttachmentMgmtIGW
         Type: AWS::EC2::Route
         Properties:
             RouteTableId: !Ref rRouteTableMgmtDMZ
@@ -298,6 +328,7 @@ Resources:
             RouteTableId: !Ref rRouteTableMgmtPrivate
             SubnetId: !Ref rManagementPrivateSubnetB
     rENIProductionBastion:
+        Condition: cCreateBastionHost
         Type: AWS::EC2::NetworkInterface
         Properties:
             SubnetId: !Ref rManagementDMZSubnetA
@@ -309,6 +340,7 @@ Resources:
                 Value: MgmtBastionDevice
     rMgmtBastionInstance:
         Type: AWS::EC2::Instance
+        Condition: cCreateBastionHost
         Properties:
             InstanceType: !Ref pBastionInstanceType
             KeyName: !Ref pEC2KeyPairBastion
@@ -324,14 +356,12 @@ Resources:
                 yum update -y
     rEIPProdBastion:
         Type: AWS::EC2::EIP
+        Condition: cCreateBastionHost
         Properties:
             Domain: vpc
     AssociaterEIPProdBastion:
         Type: AWS::EC2::EIPAssociation
-        DependsOn:
-          - rENIProductionBastion
-          - rMgmtBastionInstance
-          - rEIPProdBastion
+        Condition: cCreateBastionHost
         Properties:
             AllocationId: !GetAtt [ rEIPProdBastion, AllocationId ]
             NetworkInterfaceId: !Ref rENIProductionBastion
@@ -372,6 +402,7 @@ Resources:
             NetworkInterfaceId: !Ref rManagementNATInstanceInterface
     rEIPProdNAT:
         Type: AWS::EC2::EIP
+        Condition: cSupportsNatGateway
         Properties:
             Domain: vpc
     rNATGateway:
@@ -388,6 +419,7 @@ Resources:
             InternetGatewayId: !Ref rIGWManagement
     rSecurityGroupBastion:
         Type: AWS::EC2::SecurityGroup
+        Condition: cCreateBastionHost
         Properties:
             GroupDescription: SG for Bastion Instances
             VpcId: !Ref rVPCManagement
@@ -467,6 +499,8 @@ Outputs:
         Value: !Ref rManagementPrivateSubnetB
     rRouteTableMgmtPrivate:
         Value: !Ref rRouteTableMgmtPrivate
+    rRouteTableMgmtDMZ:
+        Value: !Ref rRouteTableMgmtDMZ
     rSecurityGroupVpcNat:
         Value: !Ref rSecurityGroupVpcNat
     rEIPManagementNAT:
