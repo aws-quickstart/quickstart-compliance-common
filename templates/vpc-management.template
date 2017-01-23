@@ -71,7 +71,7 @@ Parameters:
     pCreateBastionHost:
         Description: Should a Bastion host be created inside the DMZ Subnet(s)?
         Type: String
-        Default: True
+        Default: true
         AllowedValues:
           - true
           - false
@@ -488,6 +488,7 @@ Outputs:
     rVPCManagement:
         Value: !Ref rVPCManagement
     rBastionInstanceIP:
+        Condition: cCreateBastionHost
         Value: !GetAtt [ rMgmtBastionInstance, PublicIp ]
     rManagementDMZSubnetA:
         Value: !Ref rManagementDMZSubnetA
@@ -505,3 +506,5 @@ Outputs:
         Value: !Ref rSecurityGroupVpcNat
     rEIPManagementNAT:
         Value: !Ref rEIPProdNAT
+    rSecurityGroupSSHFromMgmt:
+        Value: !Ref rSecurityGroupSSHFromMgmt
