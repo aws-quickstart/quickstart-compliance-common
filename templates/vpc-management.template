@@ -352,7 +352,7 @@ Resources:
               - NetworkInterfaceId: !Ref rENIProductionBastion
                 DeviceIndex: 0
             UserData: !Base64 |
-                #!/bin/bash\n"
+                #!/bin/bash
                 yum update -y
     rEIPProdBastion:
         Type: AWS::EC2::EIP
