@@ -192,7 +192,7 @@ Parameters:
             are automatically appended.
         Type: String
 Conditions:
-    cCreateBastionHost: !Equals [ false, !Ref pCreateBastionHost ]
+    cCreateBastionHost: !Equals [ true, !Ref pCreateBastionHost ]
     cCreatePeeringProduction: !Not [ !Equals [ '', !Ref pProductionVPC] ]
     cNeedNatInstance: !Equals [ false, !Ref pSupportsNatGateway ]
     cSupportsNatGateway: !Equals [ true, !Ref pSupportsNatGateway ]
