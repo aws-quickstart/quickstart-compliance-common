@@ -489,7 +489,7 @@ Outputs:
         Value: !Ref rVPCManagement
     rBastionInstanceIP:
         Condition: cCreateBastionHost
-        Value: !Ref rEIPProdBastion
+        Value: !If [ cCreateBastionHost, !Ref rEIPProdBastion, '' ]
     rManagementDMZSubnetA:
         Value: !Ref rManagementDMZSubnetA
     rManagementDMZSubnetB:
