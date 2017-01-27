@@ -223,7 +223,7 @@ Resources:
                 pVpcId: !Ref rVPCManagement
                 pVpcName: !Ref pManagementVPCName
                 pRouteTablePrivate: !Ref rRouteTableMgmtPrivate
-                pEipNatAllocationId: !GetAtt [ rEIPProdNAT, AllocationId ]
+                pEipNatAllocationId: !GetAtt rEIPProdNAT.AllocationId
     rSecurityGroupVpcNat:
         Type: AWS::EC2::SecurityGroup
         Properties:
@@ -363,7 +363,7 @@ Resources:
         Type: AWS::EC2::EIPAssociation
         Condition: cCreateBastionHost
         Properties:
-            AllocationId: !GetAtt [ rEIPProdBastion, AllocationId ]
+            AllocationId: !GetAtt rEIPProdBastion.AllocationId
             NetworkInterfaceId: !Ref rENIProductionBastion
     rEIPManagementNAT:
         Type: AWS::EC2::EIP
@@ -398,11 +398,10 @@ Resources:
     AssociaterEIPManagementNAT:
         Type: AWS::EC2::EIPAssociation
         Properties:
-            AllocationId: !GetAtt [ rEIPManagementNAT, AllocationId ]
+            AllocationId: !GetAtt rEIPManagementNAT.AllocationId
             NetworkInterfaceId: !Ref rManagementNATInstanceInterface
     rEIPProdNAT:
         Type: AWS::EC2::EIP
-        Condition: cSupportsNatGateway
         Properties:
             Domain: vpc
     rNATGateway:
@@ -410,7 +409,7 @@ Resources:
         Condition: cSupportsNatGateway
         DependsOn: rIGWManagement
         Properties:
-            AllocationId: !GetAtt [ rEIPProdNAT, AllocationId ]
+            AllocationId: !GetAtt rEIPProdNAT.AllocationId
             SubnetId: !Ref rManagementDMZSubnetA
     rGWAttachmentMgmtIGW:
         Type: AWS::EC2::VPCGatewayAttachment

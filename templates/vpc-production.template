@@ -319,7 +319,6 @@ Resources:
                 Value: rt-production-dmz
     rEIPProdNAT:
         Type: AWS::EC2::EIP
-        Condition: cSupportsNatGateway
         Properties:
             Domain: vpc
     rNATGateway:
@@ -327,7 +326,7 @@ Resources:
         DependsOn: rIGWProd
         Condition: cSupportsNatGateway
         Properties:
-            AllocationId: !GetAtt [ rEIPProdNAT, AllocationId ]
+            AllocationId: !GetAtt rEIPProdNAT.AllocationId
             SubnetId: !Ref rDMZSubnetA
     rNatInstanceTemplate:
         Type: AWS::CloudFormation::Stack
@@ -345,6 +344,7 @@ Resources:
                 pVpcId: !Ref rVPCProduction
                 pVpcName: !Ref pProductionVPCName
                 pRouteTablePrivate: !Ref rRouteTableProdPrivate
+                pEipNatAllocationId: !GetAtt rEIPProdNAT.AllocationId
     rRouteProdIGW:
         Type: AWS::EC2::Route
         DependsOn: rGWAttachmentProdIGW

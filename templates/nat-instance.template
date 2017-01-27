@@ -90,8 +90,10 @@ Resources:
                 DeviceIndex: 0
     AssociateEipNat:
         Type: AWS::EC2::EIPAssociation
+        DependsOn:
+          - rNatInstance
         Properties:
-            AllocationId: !GetAtt [ pEipNatAllocationId, AllocationId ]
+            AllocationId: !Ref pEipNatAllocationId
             NetworkInterfaceId: !Ref rNatInstanceEni
     rRouteProdPrivateNatInstance:
         Type: AWS::EC2::Route
