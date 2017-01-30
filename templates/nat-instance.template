@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Launches a NAT instance for regions that don't support NAT Gateway
+Description: Launches a NAT instance for external outbound connectivity
 Metadata:
     Stack:
         Value: 2
