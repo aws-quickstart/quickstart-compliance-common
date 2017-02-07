@@ -483,6 +483,44 @@ Resources:
             RouteTableId: !Ref rRouteTableMgmtDMZ
             VpcPeeringConnectionId: !Ref rPeeringConnectionProduction
             DestinationCidrBlock: !Ref pProductionCIDR
+    rManagementVpcFlowLogsServiceRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+          RoleName: ManagementVpcFlowLogsServiceRole
+          Policies:
+          -
+              PolicyName: FlowLogPrivileges
+              PolicyDocument:
+                  Version: '2012-10-17'
+                  Statement:
+                  -
+                      Effect: Allow
+                      Action:
+                      - logs:CreateLogGroup
+                      - logs:CreateLogStream
+                      - logs:DescribeLogGroups
+                      - logs:DescribeLogStreams
+                      - logs:PutLogEvents
+                      Resource: "*"
+          AssumeRolePolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+              -
+                Effect: Allow
+                Principal:
+                  Service:
+                    - vpc-flow-logs.amazonaws.com
+                Action:
+                  - "sts:AssumeRole"
+          Path: "/"
+    rManagementVpcFlowLog:
+      Type: AWS::EC2::FlowLog
+      Properties:
+        DeliverLogsPermissionArn: !GetAtt rManagementVpcFlowLogsServiceRole.Arn
+        LogGroupName: ManagementVpcFlowLogs
+        ResourceId: !Ref rVPCManagement
+        ResourceType: VPC
+        TrafficType: ALL
 Outputs:
     rVPCManagement:
         Value: !Ref rVPCManagement

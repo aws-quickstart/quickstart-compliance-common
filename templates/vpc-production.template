@@ -568,6 +568,44 @@ Resources:
         Properties:
             VpcId: !Ref rVPCProduction
             InternetGatewayId: !Ref rIGWProd
+    rProductionVpcFlowLogsServiceRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+          RoleName: ProductionVpcFlowLogsServiceRole
+          Policies:
+          -
+              PolicyName: FlowLogPrivileges
+              PolicyDocument:
+                  Version: '2012-10-17'
+                  Statement:
+                  -
+                      Effect: Allow
+                      Action:
+                      - logs:CreateLogGroup
+                      - logs:CreateLogStream
+                      - logs:DescribeLogGroups
+                      - logs:DescribeLogStreams
+                      - logs:PutLogEvents
+                      Resource: "*"
+          AssumeRolePolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+              -
+                Effect: Allow
+                Principal:
+                  Service:
+                    - vpc-flow-logs.amazonaws.com
+                Action:
+                  - "sts:AssumeRole"
+          Path: "/"
+    rProductionVpcFlowLog:
+      Type: AWS::EC2::FlowLog
+      Properties:
+        DeliverLogsPermissionArn: !GetAtt rProductionVpcFlowLogsServiceRole.Arn
+        LogGroupName: ProductionVpcFlowLogs
+        ResourceId: !Ref rVPCProduction
+        ResourceType: VPC
+        TrafficType: ALL
 Outputs:
     rVPCProduction:
         Value: !Ref rVPCProduction
