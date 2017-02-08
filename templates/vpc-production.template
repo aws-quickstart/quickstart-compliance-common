@@ -571,7 +571,6 @@ Resources:
     rProductionVpcFlowLogsServiceRole:
         Type: "AWS::IAM::Role"
         Properties:
-          RoleName: ProductionVpcFlowLogsServiceRole
           Policies:
           -
               PolicyName: FlowLogPrivileges
