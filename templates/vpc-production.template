@@ -637,7 +637,7 @@ Outputs:
         Value: !Ref rDMZSubnetA
     rDMZSubnetB:
         Value: !Ref rDMZSubnetB
-    rRouteTableProdPrivateA:
+    rRouteTableProdPrivate:
         Value: !Ref rRouteTableProdPrivateA
     rRouteTableProdPrivateB:
         Value: !Ref rRouteTableProdPrivateB
