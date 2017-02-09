@@ -291,14 +291,14 @@ Resources:
             VpcId: !Ref rVPCManagement
             Tags:
               - Key: Name
-                Value: rt-management-vpc-private
+                Value: Management Private Route
     rRouteTableMgmtDMZ:
         Type: AWS::EC2::RouteTable
         Properties:
             VpcId: !Ref rVPCManagement
             Tags:
               - Key: Name
-                Value: rt-management-vpc-dmz
+                Value: Management DMZ Route
     rRouteMgmtIGW:
         DependsOn:
           - rGWAttachmentMgmtIGW
