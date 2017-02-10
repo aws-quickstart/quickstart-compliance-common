@@ -68,6 +68,10 @@ Metadata:
 Conditions:
     cNeedNatInstance: !Equals [ false, !Ref pSupportsNatGateway ]
     cSupportsNatGateway: !Equals [ true, !Ref pSupportsNatGateway ]
+    cEnableFlowLogs:
+        !Equals
+          - true
+          - !Ref pUseFlowLogs
 Parameters:
     pBastionSSHCIDR:
         Description: CIDR block to allow access to bastion SSH
@@ -141,6 +145,13 @@ Parameters:
         Description: Instance type to use for the NAT intstance if the region does not support NAT Gateway (this value is determined by the main stack if it is invoked from there)
         Type: String
         Default: ''
+    pUseFlowLogs:
+        Description: Use 'true' to enable flow logs in this VPC.
+        Type: String
+        Default: false
+        AllowedValues:
+          - true
+          - false
     QuickStartS3URL:
         Description: Quick Start S3 URL prefix.
         Default: https://s3.amazonaws.com
@@ -568,6 +579,50 @@ Resources:
         Properties:
             VpcId: !Ref rVPCProduction
             InternetGatewayId: !Ref rIGWProd
+    rFlowLogRole:
+          Condition: cEnableFlowLogs
+          Type: AWS::IAM::Role
+          Properties:
+              AssumeRolePolicyDocument:
+                  Version: 2012-10-17
+                  Statement:
+                    - Sid: AllowFlowLogs
+                      Effect: Allow
+                      Principal:
+                          Service: vpc-flow-logs.amazonaws.com
+                      Action: sts:AssumeRole
+              Path: /
+              Policies:
+                - PolicyName: cloudwatchlogsrole
+                  PolicyDocument:
+                      Version: 2012-10-17
+                      Statement:
+                        - Action:
+                            - logs:CreateLogGroup
+                            - logs:CreateLogStream
+                            - logs:PutLogEvents
+                            - logs:DescribeLogGroups
+                            - logs:DescribeLogStreams
+                          Effect: Allow
+                          Resource: '*'
+    rFlowLogGroup:
+        Condition: cEnableFlowLogs
+        Type: AWS::Logs::LogGroup
+    rFlowLog:
+        Condition: cEnableFlowLogs
+        Type: AWS::EC2::FlowLog
+        Properties:
+            DeliverLogsPermissionArn: !GetAtt rFlowLogRole.Arn
+            LogGroupName: !Ref rFlowLogGroup
+            ResourceId: !Ref rVPCProduction
+            ResourceType: VPC
+            TrafficType: ALL
+    rFlowLogStream:
+        Condition: cEnableFlowLogs
+        Type: AWS::Logs::LogStream
+        Properties:
+            LogGroupName: !Ref rFlowLogGroup
+
 Outputs:
     rVPCProduction:
         Value: !Ref rVPCProduction
