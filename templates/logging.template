@@ -390,3 +390,5 @@ Outputs:
         Value: !Ref rArchiveLogsBucket
     rSecurityAlarmTopic:
         Value: !Ref rSecurityAlarmTopic
+    rCloudTrailLogGroup:
+        Value: !Ref rCloudTrailLogGroup

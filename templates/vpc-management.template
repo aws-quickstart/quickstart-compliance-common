@@ -166,13 +166,10 @@ Parameters:
         Description: AMI to use for the NAT intstance if the region does not support NAT Gateway (this value is determined by the main stack if it is invoked from there)
         Type: String
         Default: ''
-    pUseFlowLogs:
-        Description: Use 'true' to enable flow logs in this VPC.
+    pFlowLogGroup:
+        Description: Log Group for capturing VPC Flow Logs
         Type: String
-        Default: false
-        AllowedValues:
-          - true
-          - false
+        Default: ''
     QuickStartS3URL:
         Description: Quick Start S3 URL prefix.
         Default: https://s3.amazonaws.com
@@ -203,10 +200,7 @@ Conditions:
     cCreatePeeringProduction: !Not [ !Equals [ '', !Ref pProductionVPC] ]
     cNeedNatInstance: !Equals [ false, !Ref pSupportsNatGateway ]
     cSupportsNatGateway: !Equals [ true, !Ref pSupportsNatGateway ]
-    cEnableFlowLogs:
-        !Equals
-          - true
-          - !Ref pUseFlowLogs
+    cEnableFlowLogs: !Not [ !Equals [ !Ref pFlowLogGroup, '' ] ]
 Resources:
     rVPCManagement:
         Type: AWS::EC2::VPC
@@ -521,15 +515,12 @@ Resources:
                           - logs:DescribeLogStreams
                         Effect: Allow
                         Resource: '*'
-    rFlowLogGroup:
-        Condition: cEnableFlowLogs
-        Type: AWS::Logs::LogGroup
     rFlowLog:
         Condition: cEnableFlowLogs
         Type: AWS::EC2::FlowLog
         Properties:
             DeliverLogsPermissionArn: !GetAtt rFlowLogRole.Arn
-            LogGroupName: !Ref rFlowLogGroup
+            LogGroupName: !Ref pFlowLogGroup
             ResourceId: !Ref rVPCManagement
             ResourceType: VPC
             TrafficType: ALL
@@ -537,7 +528,7 @@ Resources:
         Condition: cEnableFlowLogs
         Type: AWS::Logs::LogStream
         Properties:
-            LogGroupName: !Ref rFlowLogGroup
+            LogGroupName: !Ref pFlowLogGroup
 
 Outputs:
     rVPCManagement:
