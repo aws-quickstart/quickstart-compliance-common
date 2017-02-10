@@ -296,14 +296,14 @@ Resources:
             VpcId: !Ref rVPCManagement
             Tags:
               - Key: Name
-                Value: rt-management-vpc-private
+                Value: Management Private Route
     rRouteTableMgmtDMZ:
         Type: AWS::EC2::RouteTable
         Properties:
             VpcId: !Ref rVPCManagement
             Tags:
               - Key: Name
-                Value: rt-management-vpc-dmz
+                Value: Management DMZ Route
     rRouteMgmtIGW:
         DependsOn:
           - rGWAttachmentMgmtIGW
@@ -488,8 +488,7 @@ Resources:
             RouteTableId: !Ref rRouteTableMgmtDMZ
             VpcPeeringConnectionId: !Ref rPeeringConnectionProduction
             DestinationCidrBlock: !Ref pProductionCIDR
-
-    rFlowLogRole:
+    rManagementVpcFlowLogsServiceRole:
         Condition: cEnableFlowLogs
         Type: AWS::IAM::Role
         Properties:
@@ -515,21 +514,20 @@ Resources:
                           - logs:DescribeLogStreams
                         Effect: Allow
                         Resource: '*'
-    rFlowLog:
+    rManagementVpcFlowLog:
         Condition: cEnableFlowLogs
         Type: AWS::EC2::FlowLog
         Properties:
-            DeliverLogsPermissionArn: !GetAtt rFlowLogRole.Arn
+            DeliverLogsPermissionArn: !GetAtt rManagementVpcFlowLogsServiceRole.Arn
             LogGroupName: !Ref pFlowLogGroup
             ResourceId: !Ref rVPCManagement
             ResourceType: VPC
             TrafficType: ALL
-    rFlowLogStream:
+    rManagementVpcFlowLogStream:
         Condition: cEnableFlowLogs
         Type: AWS::Logs::LogStream
         Properties:
             LogGroupName: !Ref pFlowLogGroup
-
 Outputs:
     rVPCManagement:
         Value: !Ref rVPCManagement

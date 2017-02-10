@@ -321,18 +321,29 @@ Resources:
             VpcId: !Ref rVPCProduction
             Tags:
               - Key: Name
-                Value: rt-production-dmz
-    rEIPProdNAT:
+                Value: Production DMZ Route
+    rEIPProdNatA:
         Type: AWS::EC2::EIP
         Properties:
             Domain: vpc
-    rNATGateway:
+    rNATGatewaySubnetA:
         Type: AWS::EC2::NatGateway
         DependsOn: rIGWProd
         Condition: cSupportsNatGateway
         Properties:
-            AllocationId: !GetAtt rEIPProdNAT.AllocationId
+            AllocationId: !GetAtt rEIPProdNatA.AllocationId
             SubnetId: !Ref rDMZSubnetA
+    rEIPProdNatB:
+        Type: AWS::EC2::EIP
+        Properties:
+            Domain: vpc
+    rNATGatewaySubnetB:
+        Type: AWS::EC2::NatGateway
+        DependsOn: rIGWProd
+        Condition: cSupportsNatGateway
+        Properties:
+            AllocationId: !GetAtt rEIPProdNatB.AllocationId
+            SubnetId: !Ref rDMZSubnetB
     rNatInstanceTemplate:
         Type: AWS::CloudFormation::Stack
         Condition: cNeedNatInstance
@@ -348,8 +359,8 @@ Resources:
                 pEC2KeyPair: !Ref pEC2KeyPair
                 pVpcId: !Ref rVPCProduction
                 pVpcName: !Ref pProductionVPCName
-                pRouteTablePrivate: !Ref rRouteTableProdPrivate
-                pEipNatAllocationId: !GetAtt rEIPProdNAT.AllocationId
+                pRouteTablePrivate: !Ref rRouteTableProdPrivateA
+                pEipNatAllocationId: !GetAtt rEIPProdNatA.AllocationId
     rRouteProdIGW:
         Type: AWS::EC2::Route
         DependsOn: rGWAttachmentProdIGW
@@ -357,13 +368,20 @@ Resources:
             RouteTableId: !Ref rRouteTableMain
             GatewayId: !Ref rIGWProd
             DestinationCidrBlock: 0.0.0.0/0
-    rRouteProdPrivateNatGateway:
+    rRouteProdPrivateNatGatewayA:
         Type: AWS::EC2::Route
         Condition: cSupportsNatGateway
         Properties:
             DestinationCidrBlock: 0.0.0.0/0
-            RouteTableId: !Ref rRouteTableProdPrivate
-            NatGatewayId: !Ref rNATGateway
+            RouteTableId: !Ref rRouteTableProdPrivateA
+            NatGatewayId: !Ref rNATGatewaySubnetA
+    rRouteProdPrivateNatGatewayB:
+        Type: AWS::EC2::Route
+        Condition: cSupportsNatGateway
+        Properties:
+            DestinationCidrBlock: 0.0.0.0/0
+            RouteTableId: !Ref rRouteTableProdPrivateB
+            NatGatewayId: !Ref rNATGatewaySubnetB
     rRouteAssocProdDMZA:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
@@ -377,30 +395,37 @@ Resources:
     rAppPrivateSubnetAssociationA:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
-            RouteTableId: !Ref rRouteTableProdPrivate
+            RouteTableId: !Ref rRouteTableProdPrivateA
             SubnetId: !Ref rAppPrivateSubnetA
     rAppPrivateSubnetAssociationB:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
-            RouteTableId: !Ref rRouteTableProdPrivate
+            RouteTableId: !Ref rRouteTableProdPrivateB
             SubnetId: !Ref rAppPrivateSubnetB
     rRouteAssocDBPrivateA:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
-            RouteTableId: !Ref rRouteTableProdPrivate
+            RouteTableId: !Ref rRouteTableProdPrivateA
             SubnetId: !Ref rDBPrivateSubnetA
     rRouteAssocDBPrivateB:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
-            RouteTableId: !Ref rRouteTableProdPrivate
+            RouteTableId: !Ref rRouteTableProdPrivateB
             SubnetId: !Ref rDBPrivateSubnetB
-    rRouteTableProdPrivate:
+    rRouteTableProdPrivateA:
         Type: AWS::EC2::RouteTable
         Properties:
             VpcId: !Ref rVPCProduction
             Tags:
               - Key: Name
-                Value: rt-private-network
+                Value: Production Private Route A
+    rRouteTableProdPrivateB:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId: !Ref rVPCProduction
+            Tags:
+              - Key: Name
+                Value: Production Private Route B
     rNACLRuleAllowAllTCPInternal:
         Type: AWS::EC2::NetworkAclEntry
         Properties:
@@ -573,7 +598,7 @@ Resources:
         Properties:
             VpcId: !Ref rVPCProduction
             InternetGatewayId: !Ref rIGWProd
-    rFlowLogRole:
+    rProductionVpcFlowLogsServiceRole:
         Condition: cEnableFlowLogs
         Type: AWS::IAM::Role
         Properties:
@@ -599,21 +624,20 @@ Resources:
                           - logs:DescribeLogStreams
                         Effect: Allow
                         Resource: '*'
-    rFlowLog:
+    rProductionVpcFlowLog:
         Condition: cEnableFlowLogs
         Type: AWS::EC2::FlowLog
         Properties:
-            DeliverLogsPermissionArn: !GetAtt rFlowLogRole.Arn
+            DeliverLogsPermissionArn: !GetAtt rProductionVpcFlowLogsServiceRole.Arn
             LogGroupName: !Ref pFlowLogGroup
             ResourceId: !Ref rVPCProduction
             ResourceType: VPC
             TrafficType: ALL
-    rFlowLogStream:
+    rProductionVpcFlowLogStream:
         Condition: cEnableFlowLogs
         Type: AWS::Logs::LogStream
         Properties:
             LogGroupName: !Ref pFlowLogGroup
-
 Outputs:
     rVPCProduction:
         Value: !Ref rVPCProduction
@@ -622,7 +646,9 @@ Outputs:
     rDMZSubnetB:
         Value: !Ref rDMZSubnetB
     rRouteTableProdPrivate:
-        Value: !Ref rRouteTableProdPrivate
+        Value: !Ref rRouteTableProdPrivateA
+    rRouteTableProdPrivateB:
+        Value: !Ref rRouteTableProdPrivateB
     rRouteTableProdPublic:
         Value: !Ref rRouteTableMain
     rAppPrivateSubnetA:
