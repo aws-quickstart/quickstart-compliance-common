@@ -16,10 +16,12 @@ Parameters:
         Description: Notification email for security events
         Type: String
         Default: ''
+        AllowedPattern: ".+\\@.+\\..+"
     pSupportsGlacier:
         Description: Determines whether this region supports Glacier (passed in from Main template)
         Type: String
         Default: true
+        AllowedValues: [true, false]
     pLongTermRetentionInDays:
         Description: Number of days to retain logs in Glacier (if available in region) or Standard IA
         Type: Number
