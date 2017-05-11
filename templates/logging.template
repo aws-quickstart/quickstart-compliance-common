@@ -17,9 +17,14 @@ Parameters:
         Type: String
         Default: ''
     pSupportsGlacier:
-        Description: Determines hether this region supports Glacier (passed in from Main template)
+        Description: Determines whether this region supports Glacier (passed in from Main template)
         Type: String
         Default: true
+    pLongTermRetentionInDays:
+        Description: Number of days to retain logs in Glacier (if available in region) or Standard IA
+        Type: Number
+        Default: 2555
+        MinValue: 0
 Conditions:
     IsGovCloud: !Equals [ us-gov-west-1, !Ref 'AWS::Region' ]
     SupportsGlacier: !Equals [ true, !Ref pSupportsGlacier ]
@@ -37,9 +42,9 @@ Resources:
             AccessControl: LogDeliveryWrite
             LifecycleConfiguration:
                 Rules:
-                  - Id: Transition90daysRetain7yrs
+                  - Id: !Sub Transition90daysRetain${pLongTermRetentionInDays}days
                     Status: Enabled
-                    ExpirationInDays: 2555
+                    ExpirationInDays: !Ref pLongTermRetentionInDays
                     Transition:
                         TransitionInDays: 90
                         StorageClass: !If [ SupportsGlacier, GLACIER, STANDARD_IA ]
