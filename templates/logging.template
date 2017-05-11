@@ -16,7 +16,7 @@ Parameters:
         Description: Notification email for security events
         Type: String
         Default: ''
-        AllowedPattern: ".+\\@.+\\..+"
+        AllowedPattern: "(^$|.+\\@.+\\..+)"
     pSupportsGlacier:
         Description: Determines whether this region supports Glacier (passed in from Main template)
         Type: String
