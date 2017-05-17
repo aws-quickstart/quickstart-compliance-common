@@ -20,9 +20,80 @@ Parameters:
 Conditions:
     cRequiredTagsRule: !Not [ !Equals [ '', !Ref pRequiredTagKey ] ]
     cApprovedAMIsRule: !Not [ !Equals [ '', '' ] ]
+    cGlobalRegion: !Equals [ !Ref "AWS::Region", us-east-1 ]
+    IsGovCloud: !Equals [ us-gov-west-1, !Ref 'AWS::Region' ]
 Resources:
+    rConfigurationBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Retain
+        Properties:
+          LifecycleConfiguration:
+                Rules:
+                  - Id: Transition90daysRetain7yrs
+                    Status: Enabled
+                    ExpirationInDays: 2555
+                    Transition:
+                        TransitionInDays: 90
+                        StorageClass: GLACIER
+          VersioningConfiguration:
+                Status: Enabled
+    rConfigurationBucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref rConfigurationBucket
+            PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                  - Effect: Allow
+                    Principal:
+                        Service: config.amazonaws.com
+                    Action: s3:GetBucketAcl
+                    Resource: !Sub
+                      - arn:${Partition}:s3:::${rConfigurationBucket}
+                      - { Partition: !If [ IsGovCloud, aws-us-gov, aws ] }
+                  - Effect: Allow
+                    Principal:
+                        Service: config.amazonaws.com
+                    Action: s3:PutObject
+                    Resource: !Sub
+                      - arn:${Partition}:s3:::${rConfigurationBucket}/AWSLogs/${AWS::AccountId}/*
+                      - { Partition: !If [ IsGovCloud, aws-us-gov, aws ] }
+                    Condition:
+                        StringEquals:
+                            s3:x-amz-acl: bucket-owner-full-control
+    rConfigurationRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: !Ref AWS::StackName
+            ManagedPolicyArns:
+              - arn:aws:iam::aws:policy/service-role/AWSConfigRole
+            AssumeRolePolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                  - Effect: Allow
+                    Principal:
+                          Service: config.amazonaws.com
+                    Action: sts:AssumeRole
+    rConfigurationRecorder:
+        Type: AWS::Config::ConfigurationRecorder
+        DependsOn: rConfigurationRole
+        Properties:
+            Name: !Ref AWS::StackName
+            RecordingGroup:
+              AllSupported: true
+              IncludeGlobalResourceTypes: !If [cGlobalRegion, true,false]
+            RoleARN: !GetAtt
+              - rConfigurationRole
+              - Arn
+    rDeliveryChannel:
+        Type: AWS::Config::DeliveryChannel
+        DependsOn: rConfigurationRole
+        Properties:
+            Name: !Ref AWS::StackName
+            S3BucketName: !Ref rConfigurationBucket
     rConfigRuleForSSH:
         Type: AWS::Config::ConfigRule
+        DependsOn: rConfigurationRecorder
         Properties:
             ConfigRuleName: check-for-unrestricted-ssh-access
             Description: Checks whether security groups that are in use disallow unrestricted incoming SSH traffic.
@@ -35,6 +106,7 @@ Resources:
     rConfigRuleForRequiredTags:
         Type: AWS::Config::ConfigRule
         Condition: cRequiredTagsRule
+        DependsOn: rConfigurationRecorder
         Properties:
             ConfigRuleName: check-ec2-for-required-tag
             Description: Checks whether EC2 instances and volumes use the required tag.
@@ -50,6 +122,7 @@ Resources:
     rConfigRuleForUnrestrictedPorts:
         Type: AWS::Config::ConfigRule
         Condition: cRequiredTagsRule
+        DependsOn: rConfigurationRecorder
         Properties:
             ConfigRuleName: check-for-unrestricted-ports
             Description: Checks whether security groups that are in use disallow unrestricted incoming TCP traffic to the specified ports.
@@ -156,6 +229,7 @@ Resources:
     rConfigRuleForAMICompliance:
         Type: AWS::Config::ConfigRule
         Condition: cApprovedAMIsRule
+        DependsOn: rConfigurationRecorder
         Properties:
             ConfigRuleName: check-for-ami-compliance
             Description: Checks whether approved AMIs are used.
@@ -239,6 +313,7 @@ Resources:
             Role: !GetAtt [ rConfigRulesLambdaRole, Arn ]
     rConfigRuleForCloudTrail:
         Type: AWS::Config::ConfigRule
+        DependsOn: rConfigurationRecorder
         Properties:
             ConfigRuleName: check-whether-cloudtrail-is-enabled
             Description: Checks whether CloudTrail is enabled in this region.
