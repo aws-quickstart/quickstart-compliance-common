@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Sets up AWS Config Rules
+Description: Sets up AWS Config Rules (qs-1nb14cqcq) 
 Metadata:
     Stack:
         Value: 0

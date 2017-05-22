@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Launches a NAT instance for external outbound connectivity
+Description: Launches a NAT instance for external outbound connectivity (qs-1nb14cqca) 
 Metadata:
     Stack:
         Value: 2

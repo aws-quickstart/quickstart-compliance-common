@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Provides the base security, IAM, and access configuration for the AWS account
+Description: Provides the base security, IAM, and access configuration for the AWS account (qs-1nb14cqc0)
 Metadata:
-    Stack:
+    Stack
         Value: 1
     VersionDate:
         Value: 20160510
