@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Provides networking configuration for a standard, public facing application, separates private-public subnets and enforces traffic with NACL rules 'qs-1nb14cqcl'
+Description: 'Provides networking configuration for a standard, public facing application, separates private-public subnets and enforces traffic with NACL rules (qs-1nb14cqcl)'
 Metadata:
     AWS::CloudFormation::Interface:
         ParameterGroups:

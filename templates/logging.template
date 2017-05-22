@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Initializes global resources and logging/monitoring capabilities 'qs-1nb14cqc5'
+Description: 'Initializes global resources and logging/monitoring capabilities (qs-1nb14cqc5)'
 Metadata:
     Stack:
         Value: 0
