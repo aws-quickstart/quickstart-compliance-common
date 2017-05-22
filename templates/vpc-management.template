@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Provides networking configuration for a standard management VPC (qs-1nb14cqcg)
+Description: Provides networking configuration for a standard management VPC 'qs-1nb14cqcg'
 Metadata:
     AWS::CloudFormation::Interface:
         ParameterGroups:
