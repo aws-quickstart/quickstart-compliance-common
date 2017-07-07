@@ -87,6 +87,10 @@ Parameters:
         Description: Route Table ID for Prod VPC Private
         Type: String
         Default: ''
+    pRouteTableProdPrivateB:
+        Description: Route Table ID for Prod VPC Private
+        Type: String
+        Default: ''
     pRouteTableProdPublic:
         Description: Route Table ID for Prod VPC Public
         Type: String
@@ -472,6 +476,13 @@ Resources:
         Type: AWS::EC2::Route
         Properties:
             RouteTableId: !Ref pRouteTableProdPrivate
+            VpcPeeringConnectionId: !Ref rPeeringConnectionProduction
+            DestinationCidrBlock: !Ref pManagementCIDR
+    rRouteProdMgmtB:
+        Condition: cCreatePeeringProduction
+        Type: AWS::EC2::Route
+        Properties:
+            RouteTableId: !Ref pRouteTableProdPrivateB
             VpcPeeringConnectionId: !Ref rPeeringConnectionProduction
             DestinationCidrBlock: !Ref pManagementCIDR
     rRouteProdMgmtPublic:
