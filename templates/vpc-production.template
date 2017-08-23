@@ -359,7 +359,8 @@ Resources:
                 pEC2KeyPair: !Ref pEC2KeyPair
                 pVpcId: !Ref rVPCProduction
                 pVpcName: !Ref pProductionVPCName
-                pRouteTablePrivate: !Ref rRouteTableProdPrivateA
+                pRouteTablePrivateA: !Ref rRouteTableProdPrivateA
+                pRouteTablePrivateB: !Ref rRouteTableProdPrivateB
                 pEipNatAllocationId: !GetAtt rEIPProdNatA.AllocationId
     rRouteProdIGW:
         Type: AWS::EC2::Route

@@ -227,7 +227,8 @@ Resources:
                 pEC2KeyPair: !Ref pEC2KeyPair
                 pVpcId: !Ref rVPCManagement
                 pVpcName: !Ref pManagementVPCName
-                pRouteTablePrivate: !Ref rRouteTableMgmtPrivate
+                pRouteTablePrivateA: !Ref rRouteTableMgmtPrivate
+                pRouteTablePrivateB: ''
                 pEipNatAllocationId: !GetAtt rEIPProdNAT.AllocationId
     rSecurityGroupVpcNat:
         Type: AWS::EC2::SecurityGroup

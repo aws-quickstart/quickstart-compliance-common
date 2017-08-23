@@ -44,13 +44,19 @@ Parameters:
         Description: ID of VPC used for routing
         Type: String
         Default: ''
-    pRouteTablePrivate:
+    pRouteTablePrivateA:
+        Description: Routing table used for the NAT instance
+        Type: String
+        Default: ''
+    pRouteTablePrivateB:
         Description: Routing table used for the NAT instance
         Type: String
         Default: ''
     pEipNatAllocationId:
         Description: Allocation ID for NAT EIP
         Type: String
+Conditions:
+    cAddRouteForSecondSubnet: !Not [!Equals [!Ref pRouteTablePrivateB, '']] 
 Resources:
     rNatInstanceEni:
         Type: AWS::EC2::NetworkInterface
@@ -95,9 +101,16 @@ Resources:
         Properties:
             AllocationId: !Ref pEipNatAllocationId
             NetworkInterfaceId: !Ref rNatInstanceEni
-    rRouteProdPrivateNatInstance:
+    rRouteProdPrivateANatInstance:
         Type: AWS::EC2::Route
         Properties:
             DestinationCidrBlock: 0.0.0.0/0
-            RouteTableId: !Ref pRouteTablePrivate
+            RouteTableId: !Ref pRouteTablePrivateA
+            InstanceId: !Ref rNatInstance
+    rRouteProdPrivateBNatInstance:
+        Type: AWS::EC2::Route
+        Condition: cAddRouteForSecondSubnet
+        Properties:
+            DestinationCidrBlock: 0.0.0.0/0
+            RouteTableId: !Ref pRouteTablePrivateB
             InstanceId: !Ref rNatInstance
