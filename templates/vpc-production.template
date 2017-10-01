@@ -660,7 +660,11 @@ Outputs:
         Value: !Ref rDBPrivateSubnetA
     rDBPrivateSubnetB:
         Value: !Ref rDBPrivateSubnetB
-    rSecurityGroupSSHFromProd:
-        Value: !Ref rSecurityGroupSSHFromProd
+    rDBPrivateSubnetA:
+        Value: !Ref rDBPrivateSubnetA
+    rNACLPrivate:
+        Value: !Ref rNACLPrivate
+    rNACLPublic:
+        Value: !Ref rNACLPublic
     rSecurityGroupVpcNat:
         Value: !Ref rSecurityGroupVpcNat
