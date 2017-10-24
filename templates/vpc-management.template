@@ -229,7 +229,7 @@ Resources:
                 pVpcName: !Ref pManagementVPCName
                 pRouteTablePrivateA: !Ref rRouteTableMgmtPrivate
                 pRouteTablePrivateB: ''
-                pEipNatAllocationId: !GetAtt rEIPProdNAT.AllocationId
+                pEipNatAllocationId: !GetAtt rEIPManagementNAT.AllocationId
     rSecurityGroupVpcNat:
         Type: AWS::EC2::SecurityGroup
         Properties:
@@ -360,16 +360,16 @@ Resources:
             UserData: !Base64 |
                 #!/bin/bash
                 yum update -y
-    rEIPProdBastion:
+    rEIPManagementBastion:
         Type: AWS::EC2::EIP
         Condition: cCreateBastionHost
         Properties:
             Domain: vpc
-    AssociaterEIPProdBastion:
+    AssociaterEIPManagementBastion:
         Type: AWS::EC2::EIPAssociation
         Condition: cCreateBastionHost
         Properties:
-            AllocationId: !GetAtt rEIPProdBastion.AllocationId
+            AllocationId: !GetAtt rEIPManagementBastion.AllocationId
             NetworkInterfaceId: !Ref rENIProductionBastion
     rEIPManagementNAT:
         Type: AWS::EC2::EIP
@@ -401,21 +401,12 @@ Resources:
             Tags:
               - Key: Network
                 Value: rManagementNATInstanceInterface
-    AssociaterEIPManagementNAT:
-        Type: AWS::EC2::EIPAssociation
-        Properties:
-            AllocationId: !GetAtt rEIPManagementNAT.AllocationId
-            NetworkInterfaceId: !Ref rManagementNATInstanceInterface
-    rEIPProdNAT:
-        Type: AWS::EC2::EIP
-        Properties:
-            Domain: vpc
     rNATGateway:
         Type: AWS::EC2::NatGateway
         Condition: cSupportsNatGateway
         DependsOn: rIGWManagement
         Properties:
-            AllocationId: !GetAtt rEIPProdNAT.AllocationId
+            AllocationId: !GetAtt rEIPManagementNAT.AllocationId
             SubnetId: !Ref rManagementDMZSubnetA
     rGWAttachmentMgmtIGW:
         Type: AWS::EC2::VPCGatewayAttachment
@@ -534,7 +525,7 @@ Outputs:
         Value: !Ref rVPCManagement
     rBastionInstanceIP:
         Condition: cCreateBastionHost
-        Value: !If [ cCreateBastionHost, !Ref rEIPProdBastion, '' ]
+        Value: !If [ cCreateBastionHost, !Ref rEIPManagementBastion, '' ]
     rManagementDMZSubnetA:
         Value: !Ref rManagementDMZSubnetA
     rManagementDMZSubnetB:
@@ -550,6 +541,6 @@ Outputs:
     rSecurityGroupVpcNat:
         Value: !Ref rSecurityGroupVpcNat
     rEIPManagementNAT:
-        Value: !Ref rEIPProdNAT
+        Value: !Ref rEIPManagementNAT
     rSecurityGroupSSHFromMgmt:
         Value: !Ref rSecurityGroupSSHFromMgmt
