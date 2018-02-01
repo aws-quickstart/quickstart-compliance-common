@@ -189,7 +189,7 @@ Resources:
 
                     // Custom rule for evaluating CloudTrail configuration compliance
                     // 3 config parameters for Trail must be true: Multi-Region, Global Services Events, and Log File Validation
-                    function evaluateCompliance(configurationItem, ruleParameters, context) {
+                    function evaluateCompliance(configurationItem, context) {
                         if(configurationItem.resourceType !== 'AWS::CloudTrail::Trail')
                             return 'NOT_APPLICABLE';
 
@@ -207,11 +207,10 @@ Resources:
 
                     exports.handler = function(event, context) {
                         var invokingEvent = JSON.parse(event.invokingEvent);
-                        var ruleParameters = JSON.parse(event.ruleParameters);
                         var compliance = 'NOT_APPLICABLE';
 
                         if (isApplicable(invokingEvent.configurationItem, event))
-                            compliance = evaluateCompliance(invokingEvent.configurationItem, ruleParameters, context); // Invoke the compliance checking function.
+                            compliance = evaluateCompliance(invokingEvent.configurationItem, context); // Invoke the compliance checking function.
 
                         var putEvaluationsRequest = {
                             Evaluations: [
@@ -244,7 +243,7 @@ Resources:
             Description: Checks whether CloudTrail is enabled in this region.
             Scope:
                 ComplianceResourceTypes:
-                  - AWS::EC2::Instance
+                  - AWS::CloudTrail::Trail
             Source:
                 Owner: CUSTOM_LAMBDA
                 SourceDetails:
