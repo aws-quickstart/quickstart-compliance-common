@@ -306,7 +306,25 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref rCloudTrailLogGroup
-      FilterPattern: '{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}'
+      FilterPattern: |-
+        {
+          ($.eventName=DeleteGroupPolicy) ||
+          ($.eventName=DeleteRolePolicy) ||
+          ($.eventName=DeleteUserPolicy) ||
+          ($.eventName=PutGroupPolicy) ||
+          ($.eventName=PutRolePolicy) ||
+          ($.eventName=PutUserPolicy) ||
+          ($.eventName=CreatePolicy) ||
+          ($.eventName=DeletePolicy) ||
+          ($.eventName=CreatePolicyVersion) ||
+          ($.eventName=DeletePolicyVersion) ||
+          ($.eventName=AttachRolePolicy) ||
+          ($.eventName=DetachRolePolicy) ||
+          ($.eventName=AttachUserPolicy) ||
+          ($.eventName=DetachUserPolicy) ||
+          ($.eventName=AttachGroupPolicy) ||
+          ($.eventName=DetachGroupPolicy)
+        }
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: IAMPolicyEventCount
@@ -315,10 +333,15 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref rCloudTrailLogGroup
-      FilterPattern: '{ ($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry)
-        || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry)
-        || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)
-        }'
+      FilterPattern: |-
+        {
+          ($.eventName = CreateNetworkAcl) ||
+          ($.eventName = CreateNetworkAclEntry) ||
+          ($.eventName = DeleteNetworkAcl) ||
+          ($.eventName = DeleteNetworkAclEntry) ||
+          ($.eventName = ReplaceNetworkAclEntry) ||
+          ($.eventName = ReplaceNetworkAclAssociation)
+        }
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: NetworkAclEventCount
@@ -341,10 +364,15 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref rCloudTrailLogGroup
-      FilterPattern: '{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName
-        = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress)
-        || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup)
-        || ($.eventName = DeleteSecurityGroup) }'
+      FilterPattern: |-
+        {
+          ($.eventName = AuthorizeSecurityGroupIngress) ||
+          ($.eventName = AuthorizeSecurityGroupEgress) ||
+          ($.eventName = RevokeSecurityGroupIngress) ||
+          ($.eventName = RevokeSecurityGroupEgress) ||
+          ($.eventName = CreateSecurityGroup) ||
+          ($.eventName = DeleteSecurityGroup)
+        }
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: SecurityGroupEventCount
@@ -368,8 +396,12 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref rCloudTrailLogGroup
-      FilterPattern: '{ $.userIdentity.type = "Root" && $.userIdentity.invokedBy NOT
-        EXISTS && $.eventType != "AwsServiceEvent" }'
+      FilterPattern: |-
+        {
+          ($.userIdentity.type = "Root") &&
+          ($.userIdentity.invokedBy NOT EXISTS) &&
+          ($.eventType != "AwsServiceEvent")
+        }
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: RootUserPolicyEventCount
@@ -392,7 +424,11 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref rCloudTrailLogGroup
-      FilterPattern: '{($.errorCode=AccessDenied)||($.errorCode=UnauthorizedOperation)}'
+      FilterPattern: |-
+        {
+          ($.errorCode=AccessDenied) ||
+          ($.errorCode=UnauthorizedOperation)
+        }
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: UnauthorizedAttemptCount
@@ -445,7 +481,10 @@ Resources:
     DependsOn: rIAMCreateAccessKeyAlarm
     Properties:
       LogGroupName: !Ref rCloudTrailLogGroup
-      FilterPattern: '{($.eventName=CreateAccessKey)}'
+      FilterPattern: |-
+        {
+          ($.eventName=CreateAccessKey)
+        }
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: NewAccessKeyCreated
@@ -469,9 +508,16 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref rCloudTrailLogGroup
-      FilterPattern: '{($.eventSource = cloudtrail.amazonaws.com) && (($.eventName
-        != Describe*) && ($.eventName != Get*) && ($.eventName != Lookup*) && ($.eventName
-        != List*))}'
+      FilterPattern: |-
+        {
+          ($.eventSource = cloudtrail.amazonaws.com) &&
+          (
+            ($.eventName != Describe*) &&
+            ($.eventName != Get*) &&
+            ($.eventName != Lookup*) &&
+            ($.eventName != List*)
+          )
+        }
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: CloudTrailChangeCount
