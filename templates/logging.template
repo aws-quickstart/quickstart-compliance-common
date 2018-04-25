@@ -360,6 +360,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 1
+      TreatMissingData: notBreaching
   rSecurityGroupChangesMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -392,6 +393,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 1
+      TreatMissingData: notBreaching
   rIAMRootActivity:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -420,6 +422,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 1
+      TreatMissingData: notBreaching
   rUnauthorizedAttempts:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -447,6 +450,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 5
+      TreatMissingData: notBreaching
   rIAMPolicyChangesAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: rUnauthorizedAttemptAlarm
@@ -461,6 +465,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 1
+      TreatMissingData: notBreaching
   rIAMCreateAccessKeyAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: rIAMPolicyChangesAlarm
@@ -504,6 +509,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 1
+      TreatMissingData: notBreaching
   rCloudTrailChange:
     Type: AWS::Logs::MetricFilter
     Properties:
