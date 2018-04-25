@@ -481,6 +481,7 @@ Resources:
       Period: 300
       Statistic: Sum
       Threshold: 1
+      TreatMissingData: notBreaching
   rIAMCreateAccessKey:
     Type: AWS::Logs::MetricFilter
     DependsOn: rIAMCreateAccessKeyAlarm
