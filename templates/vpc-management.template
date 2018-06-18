@@ -26,6 +26,7 @@ Metadata:
       - pManagementCIDR
       - pManagementDMZSubnetACIDR
       - pManagementDMZSubnetBCIDR
+      - pManagementDMZSubnetPublicIP
       - pVPCTenancy
     - Label:
         default: AWS Quick Start Configuration
@@ -49,6 +50,8 @@ Metadata:
         default: CIDR block of Management DMZ SubnetA
       pManagementDMZSubnetBCIDR:
         default: CIDR block of Management DMZ SubnetB
+      pManagementDMZSubnetPublicIP:
+        default: Configure DMZ Subnets for public ip.
       pVPCTenancy:
         default: Instance tenancy
       QSS3BucketName:
@@ -70,6 +73,13 @@ Parameters:
     Description: Should a Bastion host be created inside the DMZ Subnet(s)?
     Type: String
     Default: true
+    AllowedValues:
+    - true
+    - false
+  pManagementDMZSubnetPublicIP:
+    Description: Should Public IPs be auto-assigned to instances launched in the DMZ subnet(s)?
+    Type: String
+    Default: false
     AllowedValues:
     - true
     - false
@@ -278,6 +288,7 @@ Resources:
     Properties:
       CidrBlock: !Ref pManagementDMZSubnetACIDR
       AvailabilityZone: !Ref pRegionAZ1Name
+      MapPublicIpOnLaunch: !Ref pManagementDMZSubnetPublicIP
       VpcId: !Ref rVPCManagement
       Tags:
       - Key: Name
@@ -287,6 +298,7 @@ Resources:
     Properties:
       CidrBlock: !Ref pManagementDMZSubnetBCIDR
       AvailabilityZone: !Ref pRegionAZ2Name
+      MapPublicIpOnLaunch: !Ref pManagementDMZSubnetPublicIP
       VpcId: !Ref rVPCManagement
       Tags:
       - Key: Name
