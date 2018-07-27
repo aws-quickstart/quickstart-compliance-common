@@ -51,7 +51,7 @@ Metadata:
       pManagementDMZSubnetBCIDR:
         default: CIDR block of Management DMZ SubnetB
       pManagementDMZSubnetPublicIP:
-        default: Configure DMZ Subnets for public ip.
+        default: Configure DMZ Subnet(s) for public ip.
       pVPCTenancy:
         default: Instance tenancy
       QSS3BucketName:
@@ -228,6 +228,10 @@ Conditions:
     - !Equals
       - !Ref pFlowLogGroup
       - ''
+  cManagementSubnetDefaultRoute:
+    !Equals
+    - true
+    - !Ref pManagementDMZSubnetPublicIP
 Resources:
   rVPCManagement:
     Type: AWS::EC2::VPC
