@@ -408,6 +408,8 @@ Resources:
   AssociaterEIPProdBastion:
     Type: AWS::EC2::EIPAssociation
     Condition: cCreateBastionHost
+    DependsOn:
+      - rMgmtBastionInstance
     Properties:
       AllocationId: !GetAtt rEIPProdBastion.AllocationId
       NetworkInterfaceId: !Ref rENIProductionBastion
