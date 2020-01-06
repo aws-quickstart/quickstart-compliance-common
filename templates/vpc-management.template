@@ -202,10 +202,7 @@ Parameters:
       orward slash (/).
     Type: String
 Conditions:
-  cGovCloudCondition:
-    !Equals
-    - !Ref AWS::Region
-    - us-gov-west-1
+  cGovCloudCondition: !Or [!Equals [!Ref "AWS::Region", us-gov-west-1], !Equals [!Ref "AWS::Region", us-gov-east-1]]
   cCreateBastionHost:
     !Equals
     - true
