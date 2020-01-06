@@ -111,19 +111,21 @@ Resources:
     Properties:
       Code:
         ZipFile: |
-          var aws = require('aws-sdk');
-          var config = new aws.ConfigService();
+          const aws = require('aws-sdk');
+          const config = new aws.ConfigService();
 
           // Custom rule for evaluating pre-approved AMI use
           function evaluateCompliance(configurationItem, ruleParameters, context) {
-              if(configurationItem.resourceType !== 'AWS::EC2::Instance')
+              if(configurationItem.resourceType !== 'AWS::EC2::Instance') {
                   return 'NOT_APPLICABLE';
+              }
 
               var amiIDs = ruleParameters.amiList.split(',');
               if (amiIDs.indexOf(configurationItem.configuration.imageId) > -1) {
                   return 'COMPLIANT';
+              } else {
+                  return 'NON_COMPLIANT';
               }
-              else return 'NON_COMPLIANT';
           }
 
           function isApplicable(configurationItem, event) {
@@ -137,8 +139,9 @@ Resources:
               var ruleParameters = JSON.parse(event.ruleParameters);
               var compliance = 'NOT_APPLICABLE';
 
-              if (isApplicable(invokingEvent.configurationItem, event))
+              if (isApplicable(invokingEvent.configurationItem, event)) {
                   compliance = evaluateCompliance(invokingEvent.configurationItem, ruleParameters, context); // Invoke the compliance checking function.
+              }
 
               var putEvaluationsRequest = {
                   Evaluations: [
@@ -161,7 +164,7 @@ Resources:
               });
           };
       Handler: index.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs12.x
       Timeout: 30
       Role:
         !GetAtt
@@ -204,19 +207,21 @@ Resources:
     Properties:
       Code:
         ZipFile: |
-          var aws = require('aws-sdk');
-          var config = new aws.ConfigService();
+          const aws = require('aws-sdk');
+          const config = new aws.ConfigService();
 
           // Custom rule for evaluating CloudTrail configuration compliance
           // 3 config parameters for Trail must be true: Multi-Region, Global Services Events, and Log File Validation
           function evaluateCompliance(configurationItem, ruleParameters, context) {
-              if(configurationItem.resourceType !== 'AWS::CloudTrail::Trail')
+              if(configurationItem.resourceType !== 'AWS::CloudTrail::Trail') {
                   return 'NOT_APPLICABLE';
+              }
 
               if((configurationItem.configuration.logFileValidationEnabled) && (configurationItem.configuration.includeGlobalServiceEvents) && (configurationItem.configuration.isMultiRegionTrail)) {
                   return 'COMPLIANT';
+              } else {
+                  return 'NON_COMPLIANT';
               }
-              else return 'NON_COMPLIANT';
           }
 
           function isApplicable(configurationItem, event) {
@@ -230,8 +235,9 @@ Resources:
               var ruleParameters = JSON.parse(event.ruleParameters);
               var compliance = 'NOT_APPLICABLE';
 
-              if (isApplicable(invokingEvent.configurationItem, event))
+              if (isApplicable(invokingEvent.configurationItem, event)) {
                   compliance = evaluateCompliance(invokingEvent.configurationItem, ruleParameters, context); // Invoke the compliance checking function.
+              }
 
               var putEvaluationsRequest = {
                   Evaluations: [
@@ -253,7 +259,7 @@ Resources:
               });
           };
       Handler: index.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs12.x
       Timeout: 30
       Role:
         !GetAtt
