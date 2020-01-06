@@ -165,10 +165,7 @@ Parameters:
       forward slash (/).
     Type: String
 Conditions:
-  cGovCloudCondition:
-    !Equals
-    - !Ref AWS::Region
-    - us-gov-west-1
+  cGovCloudCondition: !Or [!Equals [!Ref "AWS::Region", us-gov-west-1], !Equals [!Ref "AWS::Region", us-gov-east-1]]
   cNeedNatInstance:
     !Equals
     - false
