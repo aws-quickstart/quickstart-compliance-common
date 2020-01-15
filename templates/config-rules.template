@@ -20,18 +20,18 @@ Parameters:
       blank to ignore)
     Type: String
 Conditions:
-  cRequiredTagsRule:
+  RequiredTagsRule:
     !Not
     - !Equals
       - ''
       - !Ref pRequiredTagKey
-  cApprovedAMIsRule:
+  ApprovedAMIsRule:
     !Not
     - !Equals
       - ''
       - ''
 Resources:
-  rConfigRuleForSSH:
+  ConfigRuleForSSH:
     Type: AWS::Config::ConfigRule
     Properties:
       ConfigRuleName: check-for-unrestricted-ssh-access
@@ -43,9 +43,9 @@ Resources:
       Source:
         Owner: AWS
         SourceIdentifier: INCOMING_SSH_DISABLED
-  rConfigRuleForRequiredTags:
+  ConfigRuleForRequiredTags:
     Type: AWS::Config::ConfigRule
-    Condition: cRequiredTagsRule
+    Condition: RequiredTagsRule
     Properties:
       ConfigRuleName: check-ec2-for-required-tag
       Description: Checks whether EC2 instances and volumes use the required tag.
@@ -58,9 +58,9 @@ Resources:
       Source:
         Owner: AWS
         SourceIdentifier: REQUIRED_TAGS
-  rConfigRuleForUnrestrictedPorts:
+  ConfigRuleForUnrestrictedPorts:
     Type: AWS::Config::ConfigRule
-    Condition: cRequiredTagsRule
+    Condition: RequiredTagsRule
     Properties:
       ConfigRuleName: check-for-unrestricted-ports
       Description: Checks whether security groups that are in use disallow unrestricted
@@ -73,7 +73,7 @@ Resources:
       Source:
         Owner: AWS
         SourceIdentifier: RESTRICTED_INCOMING_TRAFFIC
-  rConfigRulesLambdaRole:
+  ConfigRulesLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -86,7 +86,7 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
-  rConfigRulesLambdaPolicy:
+  ConfigRulesLambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyName: configrules
@@ -97,79 +97,16 @@ Resources:
           Action: '*'
           Resource: '*'
       Roles:
-      - !Ref rConfigRulesLambdaRole
-  rConfigRulesLambdaProfile:
+      - !Ref ConfigRulesLambdaRole
+  ConfigRulesLambdaProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
-      - !Ref rConfigRulesLambdaRole
-  rAMIComplianceFunction:
-    Type: AWS::Lambda::Function
-    DependsOn: rConfigRulesLambdaRole
-    Condition: cApprovedAMIsRule
-    Properties:
-      Code:
-        ZipFile: |
-          var aws = require('aws-sdk');
-          var config = new aws.ConfigService();
-
-          // Custom rule for evaluating pre-approved AMI use
-          function evaluateCompliance(configurationItem, ruleParameters, context) {
-              if(configurationItem.resourceType !== 'AWS::EC2::Instance')
-                  return 'NOT_APPLICABLE';
-
-              var amiIDs = ruleParameters.amiList.split(',');
-              if (amiIDs.indexOf(configurationItem.configuration.imageId) > -1) {
-                  return 'COMPLIANT';
-              }
-              else return 'NON_COMPLIANT';
-          }
-
-          function isApplicable(configurationItem, event) {
-              var status = configurationItem.configurationItemStatus;
-              var eventLeftScope = event.eventLeftScope;
-              return (status === 'OK' || status === 'ResourceDiscovered') && eventLeftScope === false;
-          }
-
-          exports.handler = function(event, context) {
-              var invokingEvent = JSON.parse(event.invokingEvent);
-              var ruleParameters = JSON.parse(event.ruleParameters);
-              var compliance = 'NOT_APPLICABLE';
-
-              if (isApplicable(invokingEvent.configurationItem, event))
-                  compliance = evaluateCompliance(invokingEvent.configurationItem, ruleParameters, context); // Invoke the compliance checking function.
-
-              var putEvaluationsRequest = {
-                  Evaluations: [
-                      {
-                          ComplianceResourceType: invokingEvent.configurationItem.resourceType,
-                          ComplianceResourceId: invokingEvent.configurationItem.resourceId,
-                          ComplianceType: compliance,
-                          OrderingTimestamp: invokingEvent.configurationItem.configurationItemCaptureTime
-                      }
-                  ],
-                  ResultToken: event.resultToken
-              };
-
-              config.putEvaluations(putEvaluationsRequest, function (err, data) {
-                  if (err) {
-                      context.fail(err);
-                  } else {
-                      context.succeed(data);
-                  }
-              });
-          };
-      Handler: index.handler
-      Runtime: nodejs8.10
-      Timeout: 30
-      Role:
-        !GetAtt
-        - rConfigRulesLambdaRole
-        - Arn
-  rConfigRuleForAMICompliance:
+      - !Ref ConfigRulesLambdaRole
+  ConfigRuleForAMICompliance:
     Type: AWS::Config::ConfigRule
-    Condition: cApprovedAMIsRule
+    Condition: ApprovedAMIsRule
     Properties:
       ConfigRuleName: check-for-ami-compliance
       Description: Checks whether approved AMIs are used.
@@ -185,81 +122,87 @@ Resources:
           MessageType: ConfigurationItemChangeNotification
         SourceIdentifier:
           !GetAtt
-          - rAMIComplianceFunction
+          - ComplianceValidationFunction
           - Arn
-    DependsOn: rConfigPermissionToCallLambdaAMICompliance
-  rConfigPermissionToCallLambdaAMICompliance:
+    DependsOn: ConfigPermissionToCallLambdaAMICompliance
+  ConfigPermissionToCallLambdaAMICompliance:
     Type: AWS::Lambda::Permission
-    Condition: cApprovedAMIsRule
+    Condition: ApprovedAMIsRule
     Properties:
       FunctionName:
         !GetAtt
-        - rAMIComplianceFunction
+        - ComplianceValidationFunction
         - Arn
       Action: lambda:InvokeFunction
       Principal: config.amazonaws.com
-  rCloudTrailValidationFunction:
+  ComplianceValidationFunction:
     Type: AWS::Lambda::Function
-    DependsOn: rConfigRulesLambdaRole
+    DependsOn: ConfigRulesLambdaRole
     Properties:
       Code:
         ZipFile: |
-          var aws = require('aws-sdk');
-          var config = new aws.ConfigService();
+            import boto3
 
-          // Custom rule for evaluating CloudTrail configuration compliance
-          // 3 config parameters for Trail must be true: Multi-Region, Global Services Events, and Log File Validation
-          function evaluateCompliance(configurationItem, ruleParameters, context) {
-              if(configurationItem.resourceType !== 'AWS::CloudTrail::Trail')
-                  return 'NOT_APPLICABLE';
+            def evaluate_cloudtrail_compliance(config_item, rule_params, context):
+                if ( config_item['logFileValidationEnabled'] and
+                    config_item['includeGlobalServiceEvents'] and 
+                    config_item['isMultiRegionTrail']):
+                    return 'COMPLIANT'
+                return "NON_COMPLIANT"
 
-              if((configurationItem.configuration.logFileValidationEnabled) && (configurationItem.configuration.includeGlobalServiceEvents) && (configurationItem.configuration.isMultiRegionTrail)) {
-                  return 'COMPLIANT';
-              }
-              else return 'NON_COMPLIANT';
-          }
+            def evaulate_ami_compliance(config_item, rule_params, context);
+              ami_id_list = rule_parms['amiList'].split(',')
+              if config_item['configuration']['imageId'] in ami_id_list:
+                return 'COMPLIANT'
+              return 'NON_COMPLIANT'
 
-          function isApplicable(configurationItem, event) {
-              var status = configurationItem.configurationItemStatus;
-              var eventLeftScope = event.eventLeftScope;
-              return (status === 'OK' || status === 'ResourceDiscovered') && eventLeftScope === false;
-          }
+            def is_applicatable(config_item, event):
+                status = config_item['configurationItemStatus']
+                eventLeftScope = event['eventLeftScope']
 
-          exports.handler = function(event, context) {
-              var invokingEvent = JSON.parse(event.invokingEvent);
-              var ruleParameters = JSON.parse(event.ruleParameters);
-              var compliance = 'NOT_APPLICABLE';
+                if (status == 'OK' or status == 'ResourceDiscovered'):
+                    if eventLeftScope:
+                        return True
+                return False
 
-              if (isApplicable(invokingEvent.configurationItem, event))
-                  compliance = evaluateCompliance(invokingEvent.configurationItem, ruleParameters, context); // Invoke the compliance checking function.
+            def lambda_handler(event, context):
+                import boto3
 
-              var putEvaluationsRequest = {
-                  Evaluations: [
-                      {
-                          ComplianceResourceType: invokingEvent.configurationItem.resourceType,
-                          ComplianceResourceId: invokingEvent.configurationItem.resourceId,
-                          ComplianceType: compliance,
-                          OrderingTimestamp: invokingEvent.configurationItem.configurationItemCaptureTime
-                      }
-                  ],
-                  ResultToken: event.resultToken
-              };
-              config.putEvaluations(putEvaluationsRequest, function (err, data) {
-                  if (err) {
-                      context.fail(err);
-                  } else {
-                      context.succeed(data);
-                  }
-              });
-          };
-      Handler: index.handler
-      Runtime: nodejs8.10
+                config = boto3.client('configservice')
+                invoking_event = event['invokingEvent']
+                rule_parameters = event['ruleParameters']
+                compliance = "NOT_APPLICABLE"
+
+                resource_type_to_func = {
+                  'AWS::CloudTrail::Trail': evaluate_cloudtrail_compliance,
+                  'AWS::EC2::Instance': evaulate_ami_compliance
+                }
+
+                evaluation_func = resource_type_to_func.get(invoking_event['configurationItem'], None)
+                if evaluation_func and is_applicatable(invoking_event['configurationItem'], event):
+                  compliance = evaluation_func(invoking_event['configurationItem'], rule_parameters, context)
+
+                put_eval_req = {
+                    "Evaluations":[
+                        {
+                        "ComplianceResourceType": invoking_event['configurationItem']['resourceType'],
+                        "ComplainceResourceId": invoking_event['configurationItem']['resourceId'],
+                        "ComplainceType": compliance,
+                        "OrderingTimestamp": invoking_event['configuraitonItemCaptureTime']
+                        }
+                    ],
+                    "ResultToken": event['resultToken']
+                }
+
+                config.put_evaluations(put_eval_req)
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.7
       Timeout: 30
       Role:
         !GetAtt
-        - rConfigRulesLambdaRole
+        - ConfigRulesLambdaRole
         - Arn
-  rConfigRuleForCloudTrail:
+  ConfigRuleForCloudTrail:
     Type: AWS::Config::ConfigRule
     Properties:
       ConfigRuleName: check-whether-cloudtrail-is-enabled
@@ -274,15 +217,15 @@ Resources:
           MessageType: ConfigurationItemChangeNotification
         SourceIdentifier:
           !GetAtt
-          - rCloudTrailValidationFunction
+          - ComplianceValidationFunction
           - Arn
-    DependsOn: rConfigPermissionToCallLambdaCloudTrail
-  rConfigPermissionToCallLambdaCloudTrail:
+    DependsOn: ConfigPermissionToCallLambdaCloudTrail
+  ConfigPermissionToCallLambdaCloudTrail:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName:
         !GetAtt
-        - rCloudTrailValidationFunction
+        - ComplianceValidationFunction
         - Arn
       Action: lambda:InvokeFunction
       Principal: config.amazonaws.com
