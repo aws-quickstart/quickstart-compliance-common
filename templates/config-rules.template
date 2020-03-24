@@ -20,18 +20,18 @@ Parameters:
       blank to ignore)
     Type: String
 Conditions:
-  RequiredTagsRule:
+  cRequiredTagsRule:
     !Not
     - !Equals
       - ''
       - !Ref pRequiredTagKey
-  ApprovedAMIsRule:
+  cApprovedAMIsRule:
     !Not
     - !Equals
       - ''
       - ''
 Resources:
-  ConfigRuleForSSH:
+  rConfigRuleForSSH:
     Type: AWS::Config::ConfigRule
     Properties:
       ConfigRuleName: check-for-unrestricted-ssh-access
@@ -43,9 +43,9 @@ Resources:
       Source:
         Owner: AWS
         SourceIdentifier: INCOMING_SSH_DISABLED
-  ConfigRuleForRequiredTags:
+  rConfigRuleForRequiredTags:
     Type: AWS::Config::ConfigRule
-    Condition: RequiredTagsRule
+    Condition: cRequiredTagsRule
     Properties:
       ConfigRuleName: check-ec2-for-required-tag
       Description: Checks whether EC2 instances and volumes use the required tag.
@@ -58,9 +58,9 @@ Resources:
       Source:
         Owner: AWS
         SourceIdentifier: REQUIRED_TAGS
-  ConfigRuleForUnrestrictedPorts:
+  rConfigRuleForUnrestrictedPorts:
     Type: AWS::Config::ConfigRule
-    Condition: RequiredTagsRule
+    Condition: cRequiredTagsRule
     Properties:
       ConfigRuleName: check-for-unrestricted-ports
       Description: Checks whether security groups that are in use disallow unrestricted
@@ -73,7 +73,7 @@ Resources:
       Source:
         Owner: AWS
         SourceIdentifier: RESTRICTED_INCOMING_TRAFFIC
-  ConfigRulesLambdaRole:
+  rConfigRulesLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -86,7 +86,7 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
-  ConfigRulesLambdaPolicy:
+  rConfigRulesLambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyName: configrules
@@ -97,16 +97,16 @@ Resources:
           Action: '*'
           Resource: '*'
       Roles:
-      - !Ref ConfigRulesLambdaRole
-  ConfigRulesLambdaProfile:
+      - !Ref rConfigRulesLambdaRole
+  rConfigRulesLambdaProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
-      - !Ref ConfigRulesLambdaRole
-  ConfigRuleForAMICompliance:
+      - !Ref rConfigRulesLambdaRole
+  rConfigRuleForAMICompliance:
     Type: AWS::Config::ConfigRule
-    Condition: ApprovedAMIsRule
+    Condition: cApprovedAMIsRule
     Properties:
       ConfigRuleName: check-for-ami-compliance
       Description: Checks whether approved AMIs are used.
@@ -122,22 +122,22 @@ Resources:
           MessageType: ConfigurationItemChangeNotification
         SourceIdentifier:
           !GetAtt
-          - ComplianceValidationFunction
+          - rComplianceValidationFunction
           - Arn
-    DependsOn: ConfigPermissionToCallLambdaAMICompliance
-  ConfigPermissionToCallLambdaAMICompliance:
+    DependsOn: rConfigPermissionToCallLambdaAMICompliance
+  rConfigPermissionToCallLambdaAMICompliance:
     Type: AWS::Lambda::Permission
-    Condition: ApprovedAMIsRule
+    Condition: cApprovedAMIsRule
     Properties:
       FunctionName:
         !GetAtt
-        - ComplianceValidationFunction
+        - rComplianceValidationFunction
         - Arn
       Action: lambda:InvokeFunction
       Principal: config.amazonaws.com
-  ComplianceValidationFunction:
+  rComplianceValidationFunction:
     Type: AWS::Lambda::Function
-    DependsOn: ConfigRulesLambdaRole
+    DependsOn: rConfigRulesLambdaRole
     Properties:
       Code:
         ZipFile: |
@@ -200,9 +200,9 @@ Resources:
       Timeout: 30
       Role:
         !GetAtt
-        - ConfigRulesLambdaRole
+        - rConfigRulesLambdaRole
         - Arn
-  ConfigRuleForCloudTrail:
+  rConfigRuleForCloudTrail:
     Type: AWS::Config::ConfigRule
     Properties:
       ConfigRuleName: check-whether-cloudtrail-is-enabled
@@ -217,15 +217,15 @@ Resources:
           MessageType: ConfigurationItemChangeNotification
         SourceIdentifier:
           !GetAtt
-          - ComplianceValidationFunction
+          - rComplianceValidationFunction
           - Arn
-    DependsOn: ConfigPermissionToCallLambdaCloudTrail
-  ConfigPermissionToCallLambdaCloudTrail:
+    DependsOn: rConfigPermissionToCallLambdaCloudTrail
+  rConfigPermissionToCallLambdaCloudTrail:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName:
         !GetAtt
-        - ComplianceValidationFunction
+        - rComplianceValidationFunction
         - Arn
       Action: lambda:InvokeFunction
       Principal: config.amazonaws.com
