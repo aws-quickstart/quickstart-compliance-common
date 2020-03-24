@@ -150,7 +150,7 @@ Resources:
                     return 'COMPLIANT'
                 return "NON_COMPLIANT"
 
-            def evaulate_ami_compliance(config_item, rule_params, context);
+            def evaulate_ami_compliance(config_item, rule_params, context):
               ami_id_list = rule_parms['amiList'].split(',')
               if config_item['configuration']['imageId'] in ami_id_list:
                 return 'COMPLIANT'
