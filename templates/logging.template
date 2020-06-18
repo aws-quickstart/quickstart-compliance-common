@@ -328,7 +328,7 @@ Resources:
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: IAMPolicyEventCount
-        MetricValue: 1
+        MetricValue: '1'
   rNetworkAclChangesMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -345,7 +345,7 @@ Resources:
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: NetworkAclEventCount
-        MetricValue: 1
+        MetricValue: '1'
   rNetworkAclChangesAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -376,7 +376,7 @@ Resources:
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: SecurityGroupEventCount
-        MetricValue: 1
+        MetricValue: '1'
   rSecurityGroupChangesAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: rNetworkAclChangesAlarm
@@ -405,7 +405,7 @@ Resources:
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: RootUserPolicyEventCount
-        MetricValue: 1
+        MetricValue: '1'
   rRootActivityAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: rSecurityGroupChangesAlarm
@@ -432,7 +432,7 @@ Resources:
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: UnauthorizedAttemptCount
-        MetricValue: 1
+        MetricValue: '1'
   rUnauthorizedAttemptAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: rRootActivityAlarm
@@ -488,7 +488,7 @@ Resources:
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: NewAccessKeyCreated
-        MetricValue: 1
+        MetricValue: '1'
   rCloudTrailChangeAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: rIAMCreateAccessKeyAlarm
@@ -521,7 +521,7 @@ Resources:
       MetricTransformations:
       - MetricNamespace: CloudTrailMetrics
         MetricName: CloudTrailChangeCount
-        MetricValue: 1
+        MetricValue: '1'
 Outputs:
   rArchiveLogsBucket:
     Value: !Ref rArchiveLogsBucket
