@@ -173,10 +173,6 @@ Parameters:
     Type: String
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
-  cGovCloudCondition:
-    !Equals
-    - !Ref AWS::Region
-    - us-gov-west-1
   cNeedNatInstance:
     !Equals
     - false
