@@ -458,6 +458,7 @@ Resources:
         Value: rManagementNATInstanceInterface
   AssociaterEIPManagementNAT:
     Type: AWS::EC2::EIPAssociation
+    Condition: cNeedNatInstance
     Properties:
       AllocationId: !GetAtt rEIPManagementNAT.AllocationId
       NetworkInterfaceId: !Ref rManagementNATInstanceInterface
