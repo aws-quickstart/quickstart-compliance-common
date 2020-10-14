@@ -98,6 +98,10 @@ Parameters:
     Description: Route Table ID for Prod VPC Private
     Type: String
     Default: ''
+  pRouteTableProdPrivateB:
+    Description: Route Table ID for Prod VPC PrivateB (optional)
+    Type: String
+    Default: ''
   pRouteTableProdPublic:
     Description: Route Table ID for Prod VPC Public
     Type: String
@@ -219,6 +223,11 @@ Conditions:
     - !Equals
       - ''
       - !Ref pProductionVPC
+  cSecondProdRouteTable:
+    !Not
+    - !Equals
+      - ''
+      - !Ref pRouteTableProdPrivateB
   cNeedNatInstance:
     !Equals
     - false
@@ -271,6 +280,7 @@ Resources:
         pEipNatAllocationId: !GetAtt rEIPProdNAT.AllocationId
   rSecurityGroupVpcNat:
     Type: AWS::EC2::SecurityGroup
+    Condition: cNeedNatInstance
     Properties:
       GroupDescription: Allow NAT from Management VPC
       VpcId: !Ref rVPCManagement
@@ -420,6 +430,7 @@ Resources:
       Domain: vpc
   rSecurityGroupSSHFromMgmt:
     Type: AWS::EC2::SecurityGroup
+    Condition: cNeedNatInstance
     Properties:
       GroupDescription: Enable SSH access via port 22
       VpcId: !Ref rVPCManagement
@@ -435,6 +446,7 @@ Resources:
         Value: !Ref pEnvironment
   rManagementNATInstanceInterface:
     Type: AWS::EC2::NetworkInterface
+    Condition: cNeedNatInstance
     Properties:
       SubnetId: !Ref rManagementDMZSubnetA
       GroupSet:
@@ -446,6 +458,7 @@ Resources:
         Value: rManagementNATInstanceInterface
   AssociaterEIPManagementNAT:
     Type: AWS::EC2::EIPAssociation
+    Condition: cNeedNatInstance
     Properties:
       AllocationId: !GetAtt rEIPManagementNAT.AllocationId
       NetworkInterfaceId: !Ref rManagementNATInstanceInterface
@@ -513,6 +526,13 @@ Resources:
       NatGatewayId: !Ref rNATGateway
   rRouteProdMgmt:
     Condition: cCreatePeeringProduction
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref pRouteTableProdPrivate
+      VpcPeeringConnectionId: !Ref rPeeringConnectionProduction
+      DestinationCidrBlock: !Ref pManagementCIDR
+  rRouteProdMgmtB:
+    Condition: cSecondProdRouteTable
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref pRouteTableProdPrivate
@@ -595,9 +615,12 @@ Outputs:
   rRouteTableMgmtDMZ:
     Value: !Ref rRouteTableMgmtDMZ
   rSecurityGroupVpcNat:
+    Condition: cNeedNatInstance
     Value: !Ref rSecurityGroupVpcNat
   rEIPManagementNAT:
+    Condition: cNeedNatInstance
     Value: !Ref rEIPProdNAT
   rSecurityGroupSSHFromMgmt:
+    Condition: cNeedNatInstance
     Value: !Ref rSecurityGroupSSHFromMgmt
 ...

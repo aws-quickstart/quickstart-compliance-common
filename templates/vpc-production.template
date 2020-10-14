@@ -24,6 +24,7 @@ Metadata:
         default: Production VPC Config
       Parameters:
       - pBastionSSHCIDR
+      - pMgmtSSHCIDR
       - pProductionVPCName
       - pProductionCIDR
       - pDMZSubnetACIDR
@@ -59,6 +60,8 @@ Metadata:
         default: CIDR block of Database B subnet (private)
       pEC2KeyPair:
         default: Name of existing SSH Key for NAT Instance
+      pMgmtSSHCIDR:
+        default: CIDR block of Management VPC for SSH access
       pVPCTenancy:
         default: Instance tenancy
       QSS3BucketName:
@@ -70,6 +73,10 @@ Metadata:
 Parameters:
   pBastionSSHCIDR:
     Description: CIDR block to allow access to bastion SSH
+    Type: String
+    Default: 0.0.0.0/0
+  pMgmtSSHCIDR:
+    Description: CIDR block to allow access from management VPC
     Type: String
     Default: 0.0.0.0/0
   pRegionAZ1Name:
@@ -201,6 +208,7 @@ Resources:
         Value: !Ref pEnvironment
   rSecurityGroupVpcNat:
     Type: AWS::EC2::SecurityGroup
+    Condition: cNeedNatInstance
     Properties:
       GroupDescription: Allow NAT from production
       VpcId: !Ref rVPCProduction
@@ -235,6 +243,7 @@ Resources:
         Value: !Ref pEnvironment
   rSecurityGroupSSHFromProd:
     Type: AWS::EC2::SecurityGroup
+    Condition: cNeedNatInstance
     Properties:
       GroupDescription: Enable SSH access via port 22
       VpcId: !Ref rVPCProduction
@@ -551,7 +560,7 @@ Resources:
   rNACLRuleAllowBastionSSHAccessPublic:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
-      CidrBlock: 0.0.0.0/0
+      CidrBlock: !Ref pMgmtSSHCIDR
       Protocol: 6
       PortRange:
         From: 22
@@ -684,7 +693,9 @@ Outputs:
   rNACLPublic:
     Value: !Ref rNACLPublic
   rSecurityGroupSSHFromProd:
+    Condition: cNeedNatInstance
     Value: !Ref rSecurityGroupSSHFromProd
   rSecurityGroupVpcNat:
+    Condition: cNeedNatInstance
     Value: !Ref rSecurityGroupVpcNat
 ...
