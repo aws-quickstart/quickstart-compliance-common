@@ -535,7 +535,7 @@ Resources:
     Condition: cSecondProdRouteTable
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref pRouteTableProdPrivate
+      RouteTableId: !Ref pRouteTableProdPrivateB
       VpcPeeringConnectionId: !Ref rPeeringConnectionProduction
       DestinationCidrBlock: !Ref pManagementCIDR
   rRouteProdMgmtPublic:
