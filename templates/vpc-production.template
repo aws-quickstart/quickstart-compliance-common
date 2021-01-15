@@ -111,15 +111,15 @@ Parameters:
   pAppPrivateSubnetBCIDR:
     Description: CIDR block for Application AZ-1b subnet
     Type: String
-    Default: 10.100.119.0/21
+    Default: 10.100.112.0/21
   pDBPrivateSubnetACIDR:
     Description: CIDR block for Private AZ-1a subnet
     Type: String
-    Default: 10.100.194.0/21
+    Default: 10.100.192.0/21
   pDBPrivateSubnetBCIDR:
     Description: CIDR block for Private AZ-1b subnet
     Type: String
-    Default: 10.100.212.0/21
+    Default: 10.100.208.0/21
   pEC2KeyPair:
     Description: Name of existing EC2 key pair for production hosts
     Type: String
