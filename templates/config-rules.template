@@ -88,6 +88,13 @@ Resources:
       Path: /
   rConfigRulesLambdaPolicy:
     Type: AWS::IAM::Policy
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyActionWildcard
+          ignore_reasons:
+            EIAMPolicyActionWildcard: Done by Design
     Properties:
       PolicyName: configrules
       PolicyDocument:
