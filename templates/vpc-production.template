@@ -630,6 +630,15 @@ Resources:
   rProductionVpcFlowLogsServiceRole:
     Condition: cEnableFlowLogs
     Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+            - E1012
+          ignore_reasons:
+            EIAMPolicyWildcardResource: Done by Design
+            E1012: Done by Design
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -653,6 +662,17 @@ Resources:
             - logs:DescribeLogStreams
             Effect: Allow
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents
+            Resource: !Ref 'logs/log-stream'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+            Resource: !Ref 'logs/log-group'
   rProductionVpcFlowLog:
     Condition: cEnableFlowLogs
     Type: AWS::EC2::FlowLog

@@ -407,7 +407,7 @@ Resources:
       ImageId: !Ref pBastionAmi
       NetworkInterfaces:
       - NetworkInterfaceId: !Ref rENIProductionBastion
-        DeviceIndex: 0
+        DeviceIndex: '0'
       UserData: !Base64 |
         #!/bin/bash
         yum update -y
@@ -555,6 +555,15 @@ Resources:
   rManagementVpcFlowLogsServiceRole:
     Condition: cEnableFlowLogs
     Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+            - E1012
+          ignore_reasons:
+            EIAMPolicyWildcardResource: Done by Design
+            E1012: Done by Design
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -578,6 +587,17 @@ Resources:
             - logs:DescribeLogStreams
             Effect: Allow
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents
+            Resource: !Ref 'logs/log-stream'
+          - Effect: Allow
+            Action:
+              - logs:DescribeLogStreams
+              - logs:DescribeLogGroups
+              - logs:CreateLogStream
+              - logs:CreateLogGroup
+            Resource: !Ref 'logs/log-group'
   rManagementVpcFlowLog:
     Condition: cEnableFlowLogs
     Type: AWS::EC2::FlowLog
